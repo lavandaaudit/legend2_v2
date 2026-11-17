@@ -136,7 +136,7 @@ body{
 #hud-mission{display:flex;align-items:center;gap:6px;background:var(--darkhud);border:1px solid var(--line);padding:5px 7px;max-width:200px}
 .mflag{width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:8px solid var(--gold);flex:0 0 auto}
 #hud-mtitle{font-size:6px;color:var(--gold);line-height:1.5}
-#hud-mob{font-size:6px;color:var(--grn);background:var(--darkhud);border:1px solid var(--line);padding:3px 6px}
+#hud-mob{position:absolute;left:50%;top:2.2%;transform:translateX(-50%);font-size:8px;color:var(--gold);background:var(--darkhud);border:1px solid var(--line);padding:3px 10px;white-space:nowrap;z-index:6;letter-spacing:1px;text-shadow:0 1px 0 #000}
 #hud-mob:empty{display:none}
 
 #hud-alert{position:absolute;left:50%;top:2.5%;transform:translateX(-50%);font-size:7px;letter-spacing:1px;
@@ -359,7 +359,7 @@ body.fakefs #game{width:100%;height:100%;object-fit:contain}
         <b>КАРТРИДЖ 24 MEG — ЧАСТИНА 2</b>
         Після останнього сигналу Києва ЛЕГЕНДА зібрав свою п'ятірку — TOXIC, PABLO, DIIN, ROCK — і поїхав у КАРПАТИ починати нове життя. Тут немає заражених. Тут інше: гори й полонини, річка Черемош і Лазурне озеро, три села з крамницями та корчмою, кемпінги, ферма, рибалка, гриби й ягоди, погода від сонця до хуртовини, легенди й артефакти Довбуша — і ГУЛЯНКИ на 8 ігрових годин біля вогнища.
         <b>Механіки:</b> група з 5 героїв (кожен з талантом), їжа/вода/енергія/настрій — без їжі й води герої сповільняться; збір ресурсів (дерева, ягоди, гриби, трави, риба), крафт і готування (юшка, банош, смажена риба, наливка), будівництво табору (вогнище, намет, колодязь, грядка-ферма, стіл, сушилка), економіка: продавай у крамниці, купуй бринзу й напитки в корчмі, випадкові події (зниклий турист, замерзлий товариш, нічні байки), 7 артефактів Карпат, Мольфар у лісовій хаті, і легендарна механіка «5 Г» — ніч п'яти зірок: кольори плывуть, і у кожного героя СВІЙ тріп.
-        <span class="cart-warn">Керування: WASD/стрілки — рух, SHIFT — біг, E — дія (збір, рибалка, двері, діалоги, плавання), M — багаж і крафт, TAB — карта (клік = маршрут), Q — гулянка (коли завгодно, якщо вогнище палає і вся група тут). R — ШУКАТИ загублених (група кричить — вони йдуть на голос). F — фонарики на ніч (кажани летять на світло). B — ТАБІР будь-де: похідний намет на лугах, у лісі чи на полонині (E біля табору → вогнище і будови). 1-4 — їсти/пити/спати/відпочити • J — журнал • G — група • T — МАНДРІВКИ (сходження на вершини). ESC — пауза. Мобільно: джойстик + кнопки E/RUN/MAP/BAG/ГРУПА/ТРЕКИ/ШУКАТИ/ФОНАР/ТАБІР/ГУЛЯНКА. Увага: у лісі РИСЬ, над групою КРУКИ, уночі на фонарики — КАЖАНИ.</span>
+        <span class="cart-warn">Керування: WASD/стрілки — рух, SHIFT — біг, E — дія (збір, рибалка, двері, діалоги, плавання), M — багаж і крафт, TAB — карта (клік = маршрут), Q — гулянка (коли завгодно, якщо вогнище палає і вся група тут). R — 🔊 ГУКАТИ: група кричить «АУ!» — загублені біжать на голос ШВИДШЕ, ніж дійшли б самі; хащі й лабіринти — не завада. F — фонарики на ніч (кажани летять на світло). B — ТАБІР будь-де: похідний намет на лугах, у лісі чи на полонині (E біля табору → вогнище і будови). 1-4 — їсти/пити/спати/відпочити • J — журнал • G — група • T — МАНДРІВКИ (сходження на вершини). ESC — пауза. Мобільно: джойстик + кнопки E/RUN/MAP/BAG/ГРУПА/ТРЕКИ/ГУКАТИ/ФОНАР/ТАБІР/ГУЛЯНКА. Увага: у лісі РИСЬ, над групою КРУКИ, уночі на фонарики — КАЖАНИ.</span>
       </div>
     </div>
 
@@ -377,13 +377,14 @@ body.fakefs #game{width:100%;height:100%;object-fit:contain}
           <div class="tbn" data-tk="d">BAG</div>
           <div class="tbn" data-tk="g">ГРУПА</div>
           <div class="tbn" data-tk="t">ТРЕКИ</div>
-          <div class="tbn" data-tk="r">🔎 ШУКАТИ</div>
+          <div class="tbn" data-tk="r">🔊 ГУКАТИ</div>
           <div class="tbn" data-tk="f">🔦 ФОНАР</div>
           <div class="tbn q" data-tk="b">⛺ ТАБІР</div>
           <div class="tbn q" data-tk="q">ГУЛЯНКА</div>
         </div>
 
         <div id="hud" class="hidden">
+          <div id="hud-mob"></div>
           <div id="hud-tl">
             <canvas id="face" width="46" height="46"></canvas>
             <div id="hud-bars">
@@ -406,7 +407,6 @@ body.fakefs #game{width:100%;height:100%;object-fit:contain}
               <span class="mflag"></span>
               <div id="hud-mtitle">...</div>
             </div>
-            <div id="hud-mob"></div>
           </div>
 
           <div id="hud-alert" class="hidden"></div>
@@ -477,15 +477,15 @@ body.fakefs #game{width:100%;height:100%;object-fit:contain}
     <h3>ПРО ГРУ ТА АСЕТИ</h3>
     <p><b>VIKTOR LEGEND 2: КАРПАТИ — TABOR SURVIVAL</b> — продовження «IBONARIUM: KYIV — THE LAST SIGNAL». Після подій у місті група ЛЕГЕНДИ виїжджає в Карпати: місто більше не тримає — тримають гори, вогнище і бринза. Відкритий гірський світ: полонини, хребти, Черемош, озеро, три села (Верховинка, Криворівня, Тустань), скелі Довбуша, хребет Піп-Іван і хата Мольфара.</p>
     <p><b>ГРУПА 5 ГЕРОЇВ (з першої частини):</b> ЛЕГЕНДА (лідер, йде першим), TOXIC (кухар — готування дужче і швидше), PABLO (рибалка — риба клює частіше), DIIN (майстер — будівництво дешевше), ROCK (весельчак — гулянки і «5 Г» частіше). Той самий персонаж, що й у IBONARIUM: KYIV — тільки по кольору різні, імена світяться над головами. Йдуть гуртом, кожного видно на карті групи з його станом.</p>
-    <p><b>ГУЛЯНКА:</b> гулянку можна починати КОЛИ ЗАВГОДНО (v1.5) — головне: живе вогнище з дровами і вся група зібрана (хтось зник — кнопка 🔎 ШУКАТИ: група бігає і кричить, загублені йдуть на голос). Напитки й закуска не обов'язкові, але з ними гулянка дужча (без них — «суха»). Вісім ігрових годин: тости, пісні, танці, азартні ігри, взаємні розіграші й доручення. Кожна гулянка унікальна — сцени пишуться в ЖУРНАЛ. Вранці — похмілля до полудня: вода, їжа або розсіл лікують.</p>
+    <p><b>ГУЛЯНКА:</b> гулянку можна починати КОЛИ ЗАВГОДНО (v1.5) — головне: живе вогнище з дровами і вся група зібрана (хтось зник — кнопка 🔊 ГУКАТИ: група бігає і кричить, загублені біжать на голос). Напитки й закуска не обов'язкові, але з ними гулянка дужча (без них — «суха»). Вісім ігрових годин: тости, пісні, танці, азартні ігри, взаємні розіграші й доручення. Кожна гулянка унікальна — сцени пишуться в ЖУРНАЛ. На гулянці МОЖНА ХОДИТИ (v2.3): герої танцюють навколо вогню, перегукуються бульбашками — байки, анекдоти, смішні історії — падають («Упав!»), лежать, борються («Попадали!») і встають. Вісім фаз на вісім годин — РОЗГІН, ТАНЦІ, БАЙКИ, ГРИБНИЙ ТРІП, ПОПАДАЛИ, ЖАЛІБНИЙ ТРІП, РОЗГУЛ, ПОХМІЛЛЯ — кожна зі СВОЄЮ музикою (коломийки, барабани, темп), світлом (мерехтіння, пульсове вогнище) і п'яними глічами (психоделічні кольори, гліч-смуги, подвійний зір). Вранці — похмілля до полудня: вода, їжа або розсіл лікують.</p>
     <p><b>ЗВІРІ ТА НІЧ (v1.5):</b> у лісі крадеться РИСЬ — відігнати бігом (SHIFT) або триматись біля вогню, інакше дзьопне. Над полонинами налітають КРУКИ — пікірують на групу і можуть втягнути їжу. Уночі у кожного героя у руці ФОНАРИК (кнопка ФОНАР / F, перемикається в панелі ГРУПА) — тепле світло освітлює дороги, але на світло злітають КАЖАНИ: вимкни фонарики — і вони розлетяться. Час тепер іде повільніше: доба ≈ 11 хвилин реального часу — встигнеш і дрова порубати, і на рибалку, і на вершину.</p>
-    <p><b>МАНДРІВКИ (T / кнопка ТРЕКИ):</b> реальні маршрути Карпат — ГОВЕРЛА (2061 м), ПЕТРОС (2020 м), ПІП-ІВАН (2028 м, руїни «Білий Слон»), МАРМАРОСЬКІ АЛЬПИ, озера НЕСАМОВИТЕ, ЯЙКО ІЛЕМЕНСЬКЕ, СИНЕВИР, кордон РУМУНІЇ (Ділове) і МОЛДОВИ (Красноільськ) — та авто-експедиція на ШАЦЬКІ ОЗЕРА (Світязь). Сходження — окремий режим: стадії від стежки до сніжників, висота, витрати сил і погода на схилі. На кожній вершині група робить ФІО.</p>
-  <p><b>ФОТОАЛЬБОМ:</b> полароїди зберігаються у грі (панель МАНДРІВКИ → «Відкрити ФОТОАЛЬБОМ» або з квесту ФОТОЛЕТОПИС КАРПАТ). Фото-точки: вершини, озера, кордони, скелі Довбуша, обсерваторія. Редактор «Карпатського Тижня» платить ₴20 за кадр з вершини.</p>
+    <p><b>МАНДРІВКИ (T / кнопка ТРЕКИ):</b> реальні маршрути Карпат — ГОВЕРЛА (2061 м), ПЕТРОС (2020 м), ПІП-ІВАН (2028 м, руїни «Білий Слон»), МАРМАРОСЬКІ АЛЬПИ, озера НЕСАМОВИТЕ, ЯЙКО ІЛЕМЕНСЬКЕ, СИНЕВИР, кордон РУМУНІЇ (Ділове) і МОЛДОВИ (Красноільськ) — та авто-експедиція на ШАЦЬКІ ОЗЕРА (Світязь). Сходження — окремий режим У ІЗОМЕТРІЇ (v2.4): гора-піраміда з терасами (ліс смерек → полонина з квітами → скелі → сніжники), звивиста стежка-серпантин, УСЯ ГРУПА ЙДЕ по ній з анімацією кроків і штурмує вершину; хмари у ТРИ шари — з ~62% підйому йдеш НАД МОРЕМ ХМАР; ізо-вершини-сусіди, репліки-бульбашки в дорозі; на фініші — прапорець з туром / карове озеро / прикордонна стела; на Шацьких — білий ван на ізо-трасі (стовпи, провіси, пил, тряска). На кожній точці група робить ФОТОСЕРІЮ з 3 кадрів.</p>
+  <p><b>ФОТОАЛЬБОМ:</b> полароїди зберігаються у грі (панель МАНДРІВКИ → «Відкрити ФОТОАЛЬБОМ» або з квесту ФОТОЛЕТОПИС КАРПАТ). Фото-точки: вершини, озера, кордони, скелі Довбуша, обсерваторія. Кожна фотосерія — ТРИ полароїди: КАДР 1 «УСІ РАЗОМ», КАДР 2 «СТРИБОК!» (з іскрами) і КАДР 3 «ПРАПОРЕЦЬ» (прапор у руках Легеня, теплий фільтр). У кадрі — ізо-вершина зі сніжною шапкою і прапорцем, хмари, птахи, смереки по кутах, зерно плівки і помаранчевий штамп дати. Редактор «Карпатського Тижня» платить ₴20 за серію з вершини.</p>
   <p><b>СЕЛА ЗСЕРЕДИНИНІ:</b> у кожну хату, церкву, крамницю, корчму, ковальню й садибу можна ЗАЙТИ (E на дверях): піч гріє, стіл годує, свічки — молебень, прилавок — торг. На дорогах ходять авто, у «Старому Вогнищі» стоїть білий ван групи (БІП-БІП!).</p>
   <p><b>«5 Г» — НІЧ П'ЯТИ ЗІРОК:</b> знайди таємний гриб (рідкі грибні галявини і нагорода Мольфара). Використай у таборі ввечері зі всією групою: шість годин плівки кольорів і галюцинацій — у КОЖНОГО героя свій тріп: Лєгенда бачить золотого Легеня, TOXIC — небесний банош, PABLO — співочих риб, DIIN — геометрію шляхів до артефактів, ROCK — тіні, що сміються. Після — «бачення»: на цілий день усі артефакти світяться на карті.</p>
     <p><b>ПОГОДА:</b> сонце / хмарність / вітер / туман / дощ / град / сніг / ХУРТОВИНА. Хуртовина закриває світ — або сиди біля вогню, або замерзнеш. Ніч холодна: без вогню герої замерзають. Вдень у спеку можна плавати в озері і засмагати на травах.</p>
-    <p><b>ГРАФІКА:</b> власний 16-bit піксель-арт студії IBONARIUM • вся графіка намальована кодом • ізометрія 2:1 • карпатська палітра. Гра працює офлайн.</p>
-    <p><b>АВТОР ГРУ:</b> © IBONARIUM GAMEWORKS • Київ • 17.11.2026 • v1.3 LAVANDA AUDIT IBONARIUM COSMO DYNAMICS LAB LIVE <br><b>ДАТА РЕЛІЗУ:</b> 17.11.2026 • ВЕРСІЯ v1.5 «ЛІСОВІ СУСІДИ» (один файл) • МОДЕРАЦІЯ: M — MATURE 17+ (гулянки, звірі і «5 Г»)</p>
+    <p><b>ГРАФІКА:</b> власний 16-bit піксель-арт студії IBONARIUM • вся графіка намальована кодом • ізометрія 2:1 • карпатська палітра. Гра працює офлайн. Офіційні активи у репозиторії: ЛОГОТИП студії assets/logo.jpg (IBONARIUM GAMEWORKS — Play • Explore • Survive) і ПЛАКАТ гри assets/poster.jpg («LEGEND. KARPATIAN SURVIVAL» — 5 HEROES • BUILD • TRADE • SURVIVE).</p>
+    <p><b>АВТОР ГРУ:</b> © IBONARIUM GAMEWORKS • Київ • 17.11.2026 • v2.4 LAVANDA AUDIT IBONARIUM COSMO DYNAMICS LAB LIVE <br><b>ДАТА РЕЛІЗУ:</b> 17.11.2026 • ВЕРСІЯ v2.4 «ФІНАЛ — ВЕРШИНА» (один файл) • МОДЕРАЦІЯ: M — MATURE 17+ (гулянки, звірі і «5 Г»)</p>
   </section>
 </div>
 <script>
@@ -659,11 +659,21 @@ IB.AUDIO=(function(){
   const NOTE={C4:262,D4:294,E4:330,F4:349,G4:392,A4:440,B4:494,C5:523,D5:587,E5:659,F5:698,G5:784,A5:880,B5:988,C6:1046,A3:220,B3:247,G3:196,F3:175,E3:165,D3:147,C3:131};
   /* коломийковий у-у-у-у ритм для гулянки */
   const GUL=[['C5',1],['E5',1],['G5',1],['E5',1],['F5',1],['A5',1],['G5',2],['E5',1],['C5',1],['D5',1],['E5',1],['F5',1],['E5',2],['D5',1],['C5',1],['G4',1],['A4',1],['B4',1],['C5',1],['D5',1],['E5',1],['D5',1],['C5',2],0];
+  /* v2.3: фазові мелодії вечірки — музика міняється щогодини */
+  const GUL_DANCE=[['G5',1],['G5',1],['E5',1],['C5',1],['D5',1],['E5',1],['D5',2],['C5',1],['E5',1],['G5',1],['A5',1],['G5',1],['E5',2],['D5',1],['C5',1],['D5',1],['E5',1],['F5',1],['E5',1],['D5',1],['C5',2],0];
+  const GUL_TALE=[['E5',2],['D5',1],['C5',1],['D5',2],['G4',2],0,['A4',1],['B4',1],['C5',2],['B4',1],['A4',1],['G4',3],0];
+  const GUL_PSY=[['C5',1],['E5',1],['A4',1],['B4',1],['D5',1],['A4',1],['G4',1],['B4',1],['C5',1],['E5',1],['F5',1],['E5',1],['C5',1],['G4',1],['A4',2],0];
+  const GUL_BLUE=[['A4',2],['G4',1],['F4',2],['E4',3],0,['D4',2],['E4',1],['F4',1],['E4',2],['D4',2],['C4',3],0];
+  const GUL_HANG=[['C4',3],0,0,['G3',3],0,0,['E4',2],['D4',2],['C4',4],0,0,0];
   const FOR=[['C4',2],['E4',1],['G4',2],['E4',1],['F4',2],['A4',1],['G4',3],0,['E4',2],['G4',1],['C5',2],['G4',1],['F4',2],['E4',1],['D4',3],0];
   const MENU=[['E4',1],['G4',1],['A4',2],['G4',1],['E4',1],['D4',2],['E4',1],['G4',1],['C5',2],['B4',1],['G4',1],['A4',3],0];
 
+  /* v2.3: барабани вечірки — «крок» на кожну долю */
+  let drumIv=null;
+  function drums(bpm){stopDrums();if(!ctx||muted)return;drumIv=setInterval(()=>{noise(0.045,0.075,260);},60000/bpm);}
+  function stopDrums(){if(drumIv){clearInterval(drumIv);drumIv=null;}}
   function playSeq(seq,bpm,wave,loop){
-    stop();
+    stopDrums();stop();
     if(!ctx||muted)return;
     const beat=60/bpm;let t=ctx.currentTime+0.05;
     const g=ctx.createGain();g.gain.value=0.5;g.connect(master);
@@ -693,13 +703,21 @@ IB.AUDIO=(function(){
   }
   function stop(){if(cur){if(cur.iv)clearInterval(cur.iv);try{cur.gain.disconnect();}catch(e){}cur=null;curName='';}}
 
+  /* v2.3: фази вечірки → (мелодія, темп, хвиля, барабани) */
+  const PH=[
+    {s:GUL,b:150,w:'square',d:0},{s:GUL_DANCE,b:172,w:'square',d:1},
+    {s:GUL_TALE,b:132,w:'triangle',d:0},{s:GUL_PSY,b:160,w:'sawtooth',d:1},
+    {s:GUL_DANCE,b:178,w:'square',d:1},{s:GUL_BLUE,b:88,w:'sine',d:0},
+    {s:GUL_PSY,b:186,w:'square',d:1},{s:GUL_HANG,b:60,w:'sine',d:0}];
   const MUSIC={
     menu(){playSeq(MENU,132,'square',true);},
     day(){playSeq(FOR,116,'triangle',true);},
     night(){playSeq(FOR,92,'sine',true);},
     gulyanka(){playSeq(GUL,168,'square',true);},
-    trip(){stop();beep(110,2,'sine',0.08,40);},
-    stop:stop,
+    trip(){stopDrums();stop();beep(110,2,'sine',0.08,40);},
+    /* v2.3: музика i-ї години гулянки */
+    partyPhase(i){const p=PH[(i|0)%8];stop();playSeq(p.s,p.b,p.w,true);if(p.d)drums(p.b);},
+    stop(){stopDrums();stop();},
   };
 
 IB.MUSIC=MUSIC;
@@ -1539,6 +1557,155 @@ function carveExtraLakes(elev){
   }
 }
 
+/* ---------- v2.2: ГАРАНТІЯ ПРОХІДНОСТІ — карта без заглушок ---------- */
+function flowBFS(elev,terr){
+  const reach=new Int32Array(W*H).fill(-1);
+  const sx=CAMPS[0].x,sy=CAMPS[0].y;
+  if(!IB.walkable(sx,sy))return reach;
+  const q=new Int32Array(W*H);let qh=0,qt=0;
+  reach[sy*W+sx]=0;q[qt++]=sy*W+sx;
+  while(qh<qt){
+    const i=q[qh++],x=i%W,y=(i/W)|0,e0=elev[i];
+    for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+      if(!dx&&!dy)continue;
+      const ax=x+dx,ay=y+dy;
+      if(ax<1||ay<1||ax>=W-1||ay>=H-1)continue;
+      const j=ay*W+ax;
+      if(reach[j]>=0)continue;
+      if(!IB.walkable(ax,ay))continue;
+      if(IB.M.abs(elev[j]-e0)>1.01)continue;
+      reach[j]=reach[i]+1;q[qt++]=j;
+    }
+  }
+  return reach;
+}
+function flowPois(){
+  const list=[];
+  for(const b of WA.buildings)list.push({x:b.door.x,y:b.door.y,n:'door:'+b.type,kind:'door',rad:2,lim:1.6});
+  for(const c of CAMPS)list.push({x:c.x,y:c.y,n:'camp:'+c.name,kind:'point',rad:1,lim:1.6});
+  list.push({x:MOLFAR.x,y:MOLFAR.y+2,n:'molfar',kind:'point',rad:1,lim:1.6});
+  for(const s of (WA.PHOTO_SPOTS||[]))if(s.x>0)list.push({x:s.x,y:s.y,n:'photo:'+s.id,kind:'photo',rad:4,lim:3.4});
+  for(const a of IB.ARTIFACTS)if(a.world)list.push({x:a.x,y:a.y,n:'art:'+a.id,kind:'point',rad:1,lim:1.6});
+  return list;
+}
+/* чи можна реально підійти до точки: досяжна клітинка в радіусі взаємодії */
+function flowReach(reach,p){
+  for(let dy=-p.rad;dy<=p.rad;dy++)for(let dx=-p.rad;dx<=p.rad;dx++){
+    const x=p.x+dx,y=p.y+dy;
+    if(x<1||y<1||x>=W-1||y>=H-1)continue;
+    const j=y*W+x;
+    if(reach[j]>=0&&IB.walkable(x,y)&&IB.dist(x,y,p.x,p.y)<=p.lim)return true;
+  }
+  return false;
+}
+/* двері — на найближчу проходиму клітинку біля стіни будинку;
+   фото-точки — переносимо в досяжну зону */
+function fixDoorsAndSpots(reach){
+  let fixes=0;
+  for(const b of WA.buildings){
+    const px=b.door.x,py=b.door.y+0.5;
+    let best=null,bd=1e9;
+    for(let y=b.y-7;y<b.y+b.h+7;y++)for(let x=b.x-7;x<b.x+b.w+7;x++){
+      if(x<1||y<1||x>=W-1||y>=H-1)continue;
+      const j=y*W+x;
+      if(!IB.walkable(x,y)||reach[j]<0)continue;
+      const d=IB.dist(x,y,px,py);
+      if(d<bd){bd=d;best={x,y};}
+    }
+    if(best&&bd>1.55){b.door={x:best.x,y:best.y};fixes++;}
+  }
+  for(const s of (WA.PHOTO_SPOTS||[])){
+    if(!(s.x>0))continue;
+    let best=null,bd=1e9;
+    for(let dy=-6;dy<=6;dy++)for(let dx=-6;dx<=6;dx++){
+      const x=s.x+dx,y=s.y+dy;
+      if(x<1||y<1||x>=W-1||y>=H-1)continue;
+      const j=y*W+x;
+      if(!IB.walkable(x,y)||reach[j]<0)continue;
+      const d=dx*dx+dy*dy;
+      if(d<bd){bd=d;best={x,y};}
+    }
+    if(best&&bd>9){s.x=best.x;s.y=best.y;fixes++;}
+  }
+  return fixes;
+}
+function flowCarve(reach,elev,terr,px,py){
+  let bt=-1,bd=1e9;
+  for(let i=0;i<W*H;i++){
+    if(reach[i]<0)continue;
+    const d=IB.dist(i%W,(i/W)|0,px,py);
+    if(d<bd){bd=d;bt=i;}
+  }
+  if(bt<0||bd>60)return false;
+  const tx2=bt%W,ty2=(bt/W)|0;
+  const steps=IB.M.ceil(IB.dist(px,py,tx2,ty2)*2);
+  const carved=[];
+  for(let i=0;i<=steps;i++){
+    const t=i/steps;
+    const x=IB.M.round(IB.lerp(px,tx2,t)),y=IB.M.round(IB.lerp(py,ty2,t));
+    if(x<2||y<2||x>=W-2||y>=H-2)continue;
+    const idx=y*W+x;
+    for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+      const p=WA.propAt(x+dx,y+dy);
+      if(p&&p.type!=='mush'&&p.type!=='triph'&&p.type!=='flower'&&p.type!=='herb'&&p.type!=='bush'){
+        const pi=WA.props.indexOf(p);if(pi>=0)WA.props.splice(pi,1);
+        WA.grid.delete((y+dy)*W+(x+dx));
+      }
+    }
+    if(terr[idx]===0||terr[idx]===9||terr[idx]===10)terr[idx]=7; /* стежка/гребля */
+    carved.push(idx);
+  }
+  /* висоти вздовж стежки: не стрибаємо >1 (два проходи) */
+  for(let pass=0;pass<2;pass++){
+    for(let i=1;i<carved.length;i++){
+      const a=carved[i-1],b=carved[i];
+      if(elev[b]>elev[a]+1)elev[b]=elev[a]+1;
+      if(elev[b]<elev[a]-1)elev[b]=elev[a]-1;
+    }
+    for(let i=carved.length-2;i>=0;i--){
+      const a=carved[i+1],b=carved[i];
+      if(elev[b]>elev[a]+1)elev[b]=elev[a]+1;
+      if(elev[b]<elev[a]-1)elev[b]=elev[a]-1;
+    }
+  }
+  return true;
+}
+function ensureMapFlow(elev,terr){
+  for(let pass=0;pass<4;pass++){
+    const reach=flowBFS(elev,terr);
+    WA.reach=reach;
+    fixDoorsAndSpots(reach);
+    const bad=flowPois().filter(p=>{
+      if(p.x<1||p.y<1||p.x>=W-1||p.y>=H-1)return false;
+      return !flowReach(reach,p);
+    });
+    if(!bad.length){WA.flowOK=true;WA.flowBad=null;return;}
+    WA.flowBad=bad.map(p=>p.n);
+    for(const p of bad)flowCarve(reach,elev,terr,p.x,p.y);
+  }
+  WA.reach=flowBFS(elev,terr);
+}
+IB.snapToReach=(x,y)=>{
+  x=IB.M.round(x);y=IB.M.round(y);
+  const R=WA.reach;
+  if(!R||x<1||y<1||x>=W-1||y>=H-1)return {x:x,y:y};
+  if(R[y*W+x]>=0&&IB.walkable(x,y))return {x:x,y:y};
+  for(let r=1;r<=16;r++){
+    let best=null,bd=1e9;
+    for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){
+      if(IB.M.max(IB.M.abs(dx),IB.M.abs(dy))!==r)continue;
+      const ax=x+dx,ay=y+dy;
+      if(ax<1||ay<1||ax>=W-1||ay>=H-1)continue;
+      const j=ay*W+ax;
+      if(R[j]<0||!IB.walkable(ax,ay))continue;
+      const d=dx*dx+dy*dy;
+      if(d<bd){bd=d;best=j;}
+    }
+    if(best!==null)return {x:best%W,y:(best/W)|0};
+  }
+  return {x:x,y:y};
+};
+
 /* ---------- ЗАПУСК ГЕНЕРАЦІЇ ---------- */
 IB.genWorld=function(){
   /* скидання попередньої генерації */
@@ -1613,6 +1780,7 @@ IB.genWorld=function(){
     }
     if(best){a.x=best.x;a.y=best.y;}
   }
+  ensureMapFlow(elev,terr); /* v2.2: перевірка і полагодження заглушок */
   WA.built=(WA.built||0)+1;
 };
 })();
@@ -1708,6 +1876,8 @@ IB.spawnVillagers=()=>{
   let si=0;
   for(const s of spots){
     const seed=si*17+3;si++;
+    const rc=IB.snapToReach?IB.snapToReach(s.x,s.y):{x:s.x,y:s.y}; /* v2.2: NPC завжди досяжний */
+    s.x=rc.x;s.y=rc.y;
     IB.E.npcs.push({
       x:s.x,y:s.y,dir:'d',fr:0,frT:0,
       look:IB.lookBySeed(seed),
@@ -1758,10 +1928,28 @@ IB.spawnTourist=()=>{
   let tx,ty,tries=0;
   do{tx=c.x+IB.rnd(-26,26);ty=c.y+IB.rnd(-26,26);tries++;}
   while(tries<40&&(IB.W.at(tx,ty)===0||IB.W.elevAt(tx,ty)>=6));
+  const rc=IB.snapToReach?IB.snapToReach(tx,ty):{x:tx,y:ty};tx=rc.x;ty=rc.y; /* v2.2: без заглушок */
   IB.E.tourist={x:tx,y:ty,dir:'d',fr:0,frT:0,
     look:{skin:'#e0a878',hair:'#241a10',hat:'cap',hatc:'#e07038',jacket:'#e07038',pants:'#3a3a44'},
     name:'ЗАГУБЛЕНИЙ ТУРИСТ',found:false,follow:false};
   IB.logLine('СЛУХ: десь у лісі хтось кричить «ДОПОМОЖІТЬ!»','gold');
+};
+
+/* ---------- v2.2: антизалипання — тихо перенести героя до лідера ---------- */
+IB.unstickTo=(leader,h)=>{
+  for(let k=0;k<14;k++){
+    const a=IB.rnd(0,6.28),r=IB.rnd(0.6,2.2);
+    const nx=leader.x+IB.M.cos(a)*r,ny=leader.y+IB.M.sin(a)*r;
+    if(IB.walkable(nx,ny)&&IB.M.abs(IB.W.elevAt(nx,ny)-IB.W.elevAt(leader.x,leader.y))<=1.01){
+      h.x=nx;h.y=ny;h.tx=nx;h.ty=ny;return true;
+    }
+  }
+  h.x=leader.x+0.8;h.y=leader.y;h.tx=h.x;h.ty=h.y;
+  return true;
+};
+IB.unstickSay=(txt)=>{
+  const now=performance.now();
+  if(!IB._unstickT||now-IB._unstickT>12000){IB._unstickT=now;IB.toast(txt,'gold');}
 };
 
 /* ---------- РУХ/ШІ ---------- */
@@ -1793,9 +1981,11 @@ function moveEnt(e,dt,speed){
 function idleAnim(e,dt){e.fr=0;e.frT=0;}
 
 function pickWander(e,r){
+  const R=IB.W.reach,WW=IB.W.W;
   for(let i=0;i<8;i++){
     const nx=e.hx+IB.rnd(-r,r),ny=e.hy+IB.rnd(-r,r);
-    if(walkable(nx,ny)){e.tx=nx;e.ty=ny;return true;}
+    /* v2.2: ціль має бути досяжною (не кишеня за деревами/скелями) */
+    if(walkable(nx,ny)&&(!R||R[(ny|0)*WW+(nx|0)]>=0)){e.tx=nx;e.ty=ny;return true;}
   }
   return false;
 }
@@ -1805,7 +1995,17 @@ IB.updateNpcs=(dt)=>{
   for(const n of IB.E.npcs){
     if(n.role==='molfar'){idleAnim(n,dt);continue;}
     n.wt-=dt;
-    if(n.tx!==n.x||n.ty!==n.y){moveEnt(n,dt,1.1);if(n.x===n.tx&&n.y===n.ty)n.wt=IB.rnd(2,6);}
+    if(n.tx!==n.x||n.ty!==n.y){
+      moveEnt(n,dt,1.1);
+      if(n.x===n.tx&&n.y===n.ty)n.wt=IB.rnd(2,6);
+      /* v2.2: NPC застряг у лабіринті 3с — повертається на своє місце */
+      if(n.nx===undefined){n.nx=n.x;n.ny=n.y;n.nT=0;}
+      if(IB.dist(n.x,n.y,n.nx,n.ny)>0.2){n.nx=n.x;n.ny=n.y;n.nT=0;}
+      else{
+        n.nT=(n.nT||0)+dt;
+        if(n.nT>3){n.x=n.hx;n.y=n.hy;n.tx=n.hx;n.ty=n.hy;n.wt=IB.rnd(1,3);n.nT=0;n.nx=undefined;}
+      }
+    }
     else if(n.wt<=0){if(!pickWander(n,4))n.wt=2;}
     else idleAnim(n,dt);
   }
@@ -1873,7 +2073,32 @@ IB.updateTeam=(dt)=>{
   const fire=IB.G.fireNear?IB.G.fireNear:null;
   for(let i=1;i<IB.E.team.length;i++){
     const h=IB.E.team[i];
-    if(IB.G.party.active||IB.G.trip.active){idleAnim(h,dt);continue;}
+    if(IB.G.trip.active){idleAnim(h,dt);continue;}
+    /* v2.3: ВЕЧІРКОВЕ ДІЙСТВО — танці навколо вогню, «упав — лежить», «попадали» */
+    if(IB.G.party.active){
+      if(h.lying>0){
+        h.lying-=dt;idleAnim(h,dt);
+        if(h.lying<=0){h.lying=0;h.pW=IB.rnd(0.5,1.1)*(IB.M.random()<0.5?-1:1);
+          h.bubble={txt:['Ой... голова','Та я не спав!','Де це я?','Ще кружки три!'][IB.ri(0,3)],t:0,life:2.6};}
+        continue;
+      }
+      const ph=IB.PARTY_PHASES[IB.M.min(IB.G.party.hour,7)];
+      if(IB.M.random()<dt*ph.fall*(IB.G.party.dry?0.55:1)){
+        h.lying=IB.rnd(7,16);h.lieDir=IB.M.random()<0.5?-1.35:1.35;
+        h.bubble={txt:['Упав!','Хх-х...','Ой-ой-ой...','Та все нормально!'][IB.ri(0,3)],t:0,life:3};
+        IB.floatMsg(h.x,h.y,'💥');IB.SFX.step();
+        continue;
+      }
+      const camp=IB.campById(IB.G.party.at);
+      if(camp&&ph.dance>0&&h.pSty<=ph.dance){
+        h.pAng=(h.pAng||IB.rnd(0,6.28))+dt*(h.pW||0.7);
+        const rr=h.pR||IB.rnd(1.6,3.0);
+        h.tx=camp.x+IB.M.cos(h.pAng)*rr;h.ty=camp.y+IB.M.sin(h.pAng)*rr*0.8;
+        if(!moveEnt(h,dt,2.7))h.pAng+=dt*0.9; /* вперся — кружляє далі */
+        continue;
+      }
+      idleAnim(h,dt);continue;
+    }
     /* v1.5: ПОШУК — пошуковці бігають навколо лідера і КРИЧАТЬ */
     if(h.searchT>0){
       h.searchT-=dt;h.shoutT=(h.shoutT||0)-dt;h.rwT=(h.rwT||0)-dt;
@@ -1891,14 +2116,17 @@ IB.updateTeam=(dt)=>{
     /* v1.5: загублений іде НА ГОЛОС — до лідера; це і «розліплює» застряглих */
     if(h.gotoSound){
       h.tx=leader.x;h.ty=leader.y;
-      moveEnt(h,dt,3.3);
+      moveEnt(h,dt,4.4);
       if(IB.M.random()<dt*0.8)IB.floatMsg(h.x,h.y,'❓');
       const d=IB.dist(h.x,h.y,leader.x,leader.y);
-      if(h.gBest===undefined||d>h.gBest)h.gBest=d; /* найкращий прогрес */
-      h.gIdle=(d>=h.gBest-0.05)?(h.gIdle||0)+dt:0;
-      if(h.gIdle>10){ /* антизалипання: 10с без прогресу — наздоганяє тропами */
-        h.x=leader.x+IB.rnd(-1.6,1.6);h.y=leader.y+IB.rnd(-1.2,1.2);
-        IB.toast(h.name+' протопав несподіваною стежкою і наздогнав групу!','gold');
+      /* v2.2-fix: прогрес = плаваюча точка відліку (gBest-макс ніколи не спрацьовував) */
+      if(h.gRef===undefined)h.gRef=d;
+      if(d<h.gRef-0.3){h.gIdle=0;h.gRef=d;}
+      else h.gIdle=(h.gIdle||0)+dt;
+      if(h.gIdle>3.5){ /* 3.5с без зближення — «гук» пробиває хащі швидше */
+        IB.unstickTo(leader,h);
+        IB.unstickSay(h.name+' почав «АУ!» і пробрався несподіваною стежкою!');
+        h.gRef=IB.dist(h.x,h.y,leader.x,leader.y);h.gIdle=0;
       }
       if(IB.dist(h.x,h.y,leader.x,leader.y)<3)IB.searchFound(h);
       continue;
@@ -1907,8 +2135,21 @@ IB.updateTeam=(dt)=>{
       const ang=i*1.35+IB.M.sin(IB.G.t*0.5+i)*0.2;
       const tx=leader.x-IB.M.cos(ang)*1.6,ty=leader.y-IB.M.sin(ang)*1.6;
       const d=IB.dist(h.x,h.y,tx,ty);
-      if(d>1.6){h.tx=tx;h.ty=ty;moveEnt(h,dt,leader.running?4.6:3.4);}
-      else{idleAnim(h,dt);}
+      if(d>1.6){
+        /* v2.2: застряг у хащах — 2с без прогресу → прямо до лідера, 4.5с → наздоганяє */
+        if(h.fx===undefined){h.fx=h.x;h.fy=h.y;h.fT=0;h.fPh=0;}
+        h.fT+=dt;
+        if(IB.dist(h.x,h.y,h.fx,h.fy)>=0.3){h.fx=h.x;h.fy=h.y;h.fT=0;h.fPh=0;}
+        else if(h.fT>2)h.fPh=1;
+        if(h.fPh>=1){h.tx=leader.x;h.ty=leader.y;moveEnt(h,dt,leader.running?4.6:3.6);}
+        else{h.tx=tx;h.ty=ty;moveEnt(h,dt,leader.running?4.6:3.4);}
+        if(h.fT>4.5){
+          IB.unstickTo(leader,h);
+          IB.unstickSay(h.name+' пробрався крізь хащі і наздогнав групу!');
+          h.fx=h.x;h.fy=h.y;h.fT=0;h.fPh=0;
+        }
+      }
+      else{idleAnim(h,dt);h.fx=undefined;h.fT=0;h.fPh=0;}
       continue;
     }
     /* робота за дорученням */
@@ -2221,9 +2462,12 @@ IB.WX_TYPES={
 IB.WX.next=function(){
   const r=IB.M.random();
   let nx='sun';
-  if(r<0.30)nx='sun';else if(r<0.45)nx='cloud';else if(r<0.55)nx='wind';
-  else if(r<0.65)nx='fog';else if(r<0.78)nx='rain';else if(r<0.83)nx='hail';
-  else if(r<0.93)nx='snow';else nx='blizzard';
+  /* v2.4a: ТУМАН РІДШЕ (було 10% — «напрягає»): тепер 3% — рідше за град,
+     і після туману наступна зміна погоди ОБОВ'ЯЗКОВО інша (без продовжень). */
+  if(r<0.34)nx='sun';else if(r<0.50)nx='cloud';else if(r<0.61)nx='wind';
+  else if(r<0.64)nx='fog';else if(r<0.79)nx='rain';else if(r<0.84)nx='hail';
+  else if(r<0.94)nx='snow';else nx='blizzard';
+  if(nx==='fog'&&IB.G.wx.type==='fog')nx='cloud'; /* туман не триває два цикли поспіль */
   if(nx!==IB.G.wx.type){
     IB.G.wx.type=nx;
     const w=IB.WX_TYPES[nx];
@@ -2379,7 +2623,7 @@ IB.makeCamp=()=>{
   const L=IB.E.team[0];
   /* вся група має бути поруч */
   const far=IB.E.team.filter(m=>IB.dist(m.x,m.y,L.x,L.y)>9);
-  if(far.length){IB.toast('Хтось відбився ('+far.map(m=>m.name).join(', ')+') — натисни ШУКАТИ (R)','red');IB.SFX.alert();return;}
+  if(far.length){IB.toast('Хтось відбився ('+far.map(m=>m.name).join(', ')+') — натисни 🔊 ГУКАТИ (R)','red');IB.SFX.alert();return;}
   const x=L.x,y=L.y;
   const terr=IB.W.at(x,y);
   if(terr===0){IB.toast('У воді табір не поставиш — вийди на берег','red');return;}
@@ -2428,7 +2672,91 @@ IB.PARTY_SCENES=[
   {i:'🍺',t:'КОНКУРС «ХТО БІЛЬШЕ»',x:'Дід Гриць виявився несподівано тримким. Пішов додому на своїх, а група ще довго свистіла йому вслід.'},
   {i:'🐺',t:'ВОЛКИ ДАЛЕКО',x:'Десь завили волки. Пес з корчми завив у відповідь. ROCK запевнив, що це було по-дружньому.'},
   {i:'🌅',t:'СВІТАНКОВА ТИША',x:'До самого світу говорили про все. Про Київ. Про гори. Про те, що найкраща дорога — та, що веде до вогнища.'},
+  /* v2.3: +25 байок, анекдотів і смішних історій */
+  {i:'🐻',t:'МЕДВЕДЬ-ГОСТЬ',x:'Десь за табором хрумтів хтось у кущах. Всі завмерли. Це був пес з корчми, що приніс у зубах чужу ковбасу. Герой вечора.'},
+  {i:'🧀',t:'БРИНЗА-ВОГНИЩЕ',x:'TOXIC смажив бринзу на вогні «як Довбуш». PABLO сказав, що Довбуш так не робив. Спір закінчився тим, що бринзу з\'їли — і правду ніхто не з\'ясував.'},
+  {i:'🎣',t:'РИБАЦЬКА БАЙКА',x:'PABLO розповів, як витягнув форель «осягає розміру двох рук». Руки при вимірюванні дивом розійшлися вдвічі ширше. DIIN заміряв: «сантиметри від холоду».'},
+  {i:'🪓',t:'ДРОВА МАЙСТРА',x:'DIIN рубав дрова так, що тріски летіли у казан. TOXIC вийняв тріску з баношу і оголосив її «спецією від майстра».'},
+  {i:'🐐',t:'КОЗА-ФАНАТКА',x:'З полонини прийшла коза і стала найкращим танцюристом вечора. ROCK обурився, але судді (пес) присудили перемогу козі.'},
+  {i:'🚗',t:'ТАКСИСТ З ПЕРЕХОПЛЕННЯ',x:'Хтось помітив на дорозі авто. «Такси тут не буває», — сказав дід Гриць. Через хвилину таксист спитав, чи не в Верховинку. Всі скорбно мовчали.'},
+  {i:'📡',t:'ОСТАННІЙ СИГНАЛ',x:'Віктор зізнався, що іноді за вогнем сумує за Києвом. PABLO підсунув йому кружку: «У Києві немає Черемошу». Віктор погодився і випив.'},
+  {i:'🌽',t:'КУКУРУДЗЯНИЙ ЗАГАД',x:'ROCK кинув качан у вогонь — «на попкорн». Стріляло так, що коза втекла, а DIIN клявся, що це був постріл мисливця з Довбушевого лісу.'},
+  {i:'🪗',t:'ТРЕМБІТА НІЧИЮ',x:'Хтось із села заграв на трембіті так далеко, що луна повернулась через п\'ять хвилин. Всі плескали. Луна, здається, теж.'},
+  {i:'🥔',t:'КАРТОПЛЯНИЙ ДУЕЛЬ',x:'Знайшли в попелі «золоту картоплю». TOXIC і ROCK крили її навпіл — «мій шматок більше». Суддя (пес) з\'їв усі улики.'},
+  {i:'🌧️',t:'ДОЩ НА ХВИЛИНУ',x:'Дощ почався і скінчився рівно на час однієї коломийки. «Ми такіє любимо», — сказав дід Гриць і не пояснив, що саме «такіє».'},
+  {i:'🦉',t:'СОВА-КРИТИК',x:'Сова над табором повторювала «угу-угу» точно в ритм. PABLO запевняв, що вона підспівувала. ROCK сказав, що сова — єдиний чесний критик у горах.'},
+  {i:'🧦',t:'ШКАРПИНКИ РОЗХОДЯТЬСЯ',x:'ROCK втратив одну шкарпинку. Знайшлась на гілці смереки — «сушиться». DIIN поклявся, що не брав. Смерека мовчала, але виглядало винувато.'},
+  {i:'🗺️',t:'КАРТА ДО СКАРБУ',x:'DIIN «нарисував» карту до скарбу Довбуша на серветці. Карта показувала прямо в казан. «Скарб і є казан», — філософсько підсумував TOXIC.'},
+  {i:'😵',t:'ХТО ПЕРШИЙ ЛІГ',x:'Спір «хто перший ляже» виграв... пес. Він просто ліг перший, і спір скінчився. ROCK вимагав перегляду.'},
+  {i:'🌄',t:'РАНОК-АНЕКДОТ',x:'— Слухай, чому сонце сходить з-за Говерли? — Бо з-за Піп-Івана воно сходило вчора. Розповів дід Гриць, і він досі вважає це найкращим анекдотом.'},
+  {i:'🎻',t:'СКРИПКА-ПЕРЕХОПЛЕННЯ',x:'Скрипку знайшли в траві — хтось із корчми загубив. Гра «поки не прийде господар» тривала до світанку. Господар прийшов і лишився до світанку ще раз.'},
+  {i:'🍯',t:'МЕДОВИЙ РОЗІГРАШ',x:'ROCK підмінив мед на «медовий напій». TOXIC попробував і оголосив це «кулінарним дивом». Потім дізнався правду і назвав це «дивом по-іншому».'},
+  {i:'🐄',t:'КОРОВА-МРІЯ',x:'Місцева корова дивилась на вогонь так уважно, що PABLO запропонував їй кружку. Корова не відмовилась. Ніхто не питав, що всередині.'},
+  {i:'🎺',t:'ОРКЕСТР ДОЩУ',x:'Краплі по намету грали такт. DIIN каже — 3/4, PABLO — 4/4. Дід Гриць мовив: «Це коломийка, юнаки, вона не вважається». І всі заспокоїлись.'},
+  {i:'🪑',t:'СТІЛЕЦЬ-ПЕРЕВІРКА',x:'PABLO приніс колоду замість стільця. Колода мала нахил, і PABLO здійснив політ, який роками розповідатимуть у корчмі.'},
+  {i:'🦔',t:'ЇЖАК-ГОСТЬ',x:'Їжак пройшов через табір, як господар. Всі розступились. «Повага до колючих», — значуще сказав DIIN і подивився на TOXIC.'},
+  {i:'💤',t:'ХТО ХРЯПОТЬ',x:'Хтось хрипів у темряві. Смішно і рівно. Дід Гриць зазначив: «Це не хропе. Це піч дихає». Більше питань не було.'},
+  {i:'🪵',t:'КОЛОДА-ФІЛОСОФ',x:'ROCK розповідав колоді свої секрети. Колода слухала краще за всіх. «Бо не перебиває», — пояснив PABLO.'},
+  {i:'🧀',t:'БРИНЗОВИЙ АНЕКДОТ',x:'— Скільки треба бринзи, щоб була щаслива гулянка? — Стільки, скільки є. Цей анекдот TOXIC розповів, і він нарешті з\'їв останній шмат.'}
 ];
+/* ---------- v2.3: ДІЙСТВО ВЕЧІРКИ — 8 фаз, глічі, діалоги ---------- */
+IB.PARTY_PHASES=[
+  {n:'РОЗГІН',bpm:150,fx:0.40,mode:'warm',fall:0.02,dance:1},
+  {n:'ТАНЦІ — КОЛОМИЙКА',bpm:172,fx:0.50,mode:'warm',fall:0.03,dance:1},
+  {n:'БАЙКИ ТА АНЕКДОТИ',bpm:132,fx:0.55,mode:'warm',fall:0.02,dance:0.6},
+  {n:'ГРИБНИЙ ТРІП',bpm:160,fx:1.00,mode:'psy',fall:0.06,dance:0.8},
+  {n:'ПОПАДАЛИ',bpm:176,fx:0.70,mode:'warm',fall:0.13,dance:1},
+  {n:'ЖАЛІБНИЙ ТРІП',bpm:88,fx:0.80,mode:'blue',fall:0.09,dance:0.4},
+  {n:'РОЗГУЛ',bpm:184,fx:1.00,mode:'psy2',fall:0.11,dance:1},
+  {n:'ПОХМІЛЛЯ',bpm:60,fx:0.45,mode:'grey',fall:0.02,dance:0}
+];
+IB.PARTY_BUBBLES=[
+  'Дід Грицу, розкажи про Довбуша!','Вже розказував!','ЩЕ РАЗ!!','Хто в казані краде м\'ясо?!','Це пес!',
+  'Хтось бачив мою шкарпинку?','Вона на смереці сушиться!','Хто підспівує сові?','Це не сова, це PABLO!',
+  'Ще кружку — і гопака!','Ти вже танцюєш гопака...','Оце ТАК гопак!','Упав! Хе-хе!','Хх-х...','Та все нормально!',
+  'Хто поклав картоплю в казан?!','Це спеція від майстра!','Банош — це любов.','Бринза — це сім\'я.',
+  'Черемош холодний, а душа гаряча!','Спіймаю рибину осягає двох рук!','Вчора спіймав. Сьогодні — черевик.',
+  'Дід Грицу, а Легінь справді грає?','Грає. Але не вночі!','Чому не вночі?!','Бо вночі це вже не скрипка!',
+  'Гори сьогодні веселі!','Зорі сміються!','Дивіться — Великий Воз!','Він їде на Говерлу!',
+  'Пісню! Пісню!','Про банош!','Про бринзу!','Про ту, що в місті...','Тихо! Лєгенда співає!',
+  'Він не співає, він ДУШИТЬ скрипку!','АУ-У-У!','ГУ-ГУ-ГУ!','Відгукнись!','Я тут! Ти де?!',
+  '«5 г» кладуть у темноту!','Мольфар казав: не більше трьох!','А він сам скільки клав?','Тому він і Мольфар!',
+  'Хропе хтось рівно, як піч!','Це не хропе. Це піч дихає.','Коза танцює краще за нас!','Судді — пес. Він за козу.',
+  'Ще один тост — за гори!','А за Черемош — два!','Хто там лізе у наш намет?!','Ти сам, ROCK!','Тоді я хтось!'
+];
+IB.partyFx={lvl:0,mode:'warm',bT:2,wT:20};
+IB.campById=(id)=>{
+  for(const c of IB.W.CAMPS)if(c.id===id)return c;
+  return (IB.G.wildCamps||[]).find(c=>c.id===id)||null;
+};
+IB.partyPsy=()=>IB.G.party.active&&IB.partyFx&&(IB.partyFx.mode==='psy'||IB.partyFx.mode==='psy2');
+IB.partyFxTick=(dt)=>{
+  const f=IB.partyFx,p=IB.G.party;
+  if(!p.active){f.lvl=IB.M.max(0,f.lvl-dt*0.4);return;}
+  const ph=IB.PARTY_PHASES[IB.M.min(p.hour,7)];
+  let alc=0;for(const h of IB.E.team)alc+=(h.alc||0);alc/=IB.E.team.length;
+  const tgt=ph.fx*(p.dry?0.55:1)*(0.55+IB.M.min(alc/3.5,1)*0.5);
+  f.lvl+=(tgt-f.lvl)*IB.M.min(1,dt*0.7);f.mode=ph.mode;
+  /* діалоги — бульбашки над героями (байки, анекдоти, п'яні репліки) */
+  f.bT-=dt;
+  if(f.bT<=0){f.bT=IB.rnd(2.4,4.8);
+    const h=IB.E.team[IB.ri(0,IB.E.team.length-1)];
+    if(h&&!h.lying)h.bubble={txt:IB.PARTY_BUBBLES[IB.ri(0,IB.PARTY_BUBBLES.length-1)],t:0,life:IB.rnd(2.8,4.2)};
+  }
+  for(const h of IB.E.team)if(h.bubble){h.bubble.t+=dt;if(h.bubble.t>h.bubble.life)h.bubble=null;}
+  /* «попадали» — боротьба: обидва падають і лежать */
+  f.wT-=dt;
+  if(f.wT<=0){f.wT=IB.rnd(16,28);
+    const cands=IB.E.team.slice(1).filter(h=>!h.lying&&IB.dist(h.x,h.y,IB.E.team[0].x,IB.E.team[0].y)<14);
+    if(cands.length>=2){const a=cands[IB.ri(0,cands.length-1)];
+      const b=cands.find(x=>x!==a);
+      if(b){a.lying=IB.rnd(6,9);b.lying=IB.rnd(6,9);a.lieDir=-1.35;b.lieDir=1.35;
+        a.bubble={txt:'Попадали!',t:0,life:3};b.bubble={txt:'Хе-хе... хто переміг?',t:0,life:3};
+        IB.floatMsg(a.x,a.y,'🤼');IB.SFX.step();}
+    }
+  }
+};
+
 /* v1.5: ГУЛЯНКА КОЛИ ЗАВГОДНО — не тільки після 17:00.
    Умови: табір + живе вогнище з дровами + вся група поруч.
    Напитки/закуска не обов'язкові: без них гулянка «суха» (слабші бонуси). */
@@ -2439,7 +2767,7 @@ IB.canParty=()=>{
   const cc=IB.G.camps[c.id];
   if(!cc.fire||cc.fuel<=0)return {ok:false,why:'Вогнище не палає — підкинь дров у вогонь (E у таборі)'};
   /* вся група поруч */
-  for(const m of IB.E.team)if(IB.dist(m.x,m.y,L.x,L.y)>8)return {ok:false,why:'Не вся група зібрана ('+m.name+' десь далеко) — натисни ШУКАТИ (R)'};
+  for(const m of IB.E.team)if(IB.dist(m.x,m.y,L.x,L.y)>8)return {ok:false,why:'Не вся група зібрана ('+m.name+' десь далеко) — натисни 🔊 ГУКАТИ (R)'};
   return {ok:true,camp:c};
 };
 IB.partyStock=()=>{
@@ -2462,8 +2790,13 @@ IB.startParty=()=>{
   let f=0;
   const foods=['yushka','banosh','kulesh','cookfish','bread','brinza','canned','eggs','potato'];
   for(const k of foods){while(IB.G.inv[k]>0&&f<6){IB.G.inv[k]--;f++;}}
-  IB.MUSIC.gulyanka();
-  IB.banner('🔥 ГУЛЯНКА ПОЧАЛАСЬ! 🔥');
+  /* v2.3: танцювальні параметри героїв + фаза 0 */
+  for(let i2=1;i2<IB.E.team.length;i2++){const h2=IB.E.team[i2];
+    h2.pAng=IB.rnd(0,6.28);h2.pR=IB.rnd(1.6,3.0);h2.pW=IB.rnd(0.5,1.1)*(IB.M.random()<0.5?-1:1);
+    h2.pSty=IB.rnd(0,1);h2.lying=0;h2.bubble=null;h2.lieDir=1.35;}
+  IB.partyFx={lvl:0.35,mode:'warm',bT:1.5,wT:IB.rnd(16,26)};
+  IB.MUSIC.partyPhase(0);
+  IB.banner('🔥 ГУЛЯНКА ПОЧАЛАСЬ! '+IB.PARTY_PHASES[0].n+' 🔥');
   if(p.dry)IB.toast('Мало напиток/закуски — гулянка буде тихішою. Наступного разу закупіться в корчмі!','gold');
   IB.journalAdd('🔥','ГУЛЯНКА №'+(IB.G.stats.parties+1)+' у «'+chk.camp.name+'» — почалася о '+IB.clockStr()+(p.dry?' (суха, без напиток).':'.') );
   IB.alertBox('ГУЛЯНКА: '+p.t.toFixed(0)+' / 8 ГОД','al-fun');
@@ -2473,12 +2806,19 @@ IB.partyTick=(dt)=>{
   const p=IB.G.party;
   p.t+=dt*0.05; /* 1 ігрова година = 20 c → 8 год = 160 c реального */
   const hourN=IB.M.floor(p.t);
-  if(hourN>p.hour){
+  /* v2.3-fix: перехід фази тільки для годин 1..8 (hourN<8) — інакше «ГОДИНА 9/8» у журналі */
+  if(hourN>p.hour&&hourN<8){
     p.hour=hourN;
+    /* v2.3: фаза години — назва, музика, світло, глічі */
+    const ph=IB.PARTY_PHASES[IB.M.min(hourN,7)];
+    IB.MUSIC.partyPhase(hourN);
+    IB.partyFx.mode=ph.mode;
+    IB.banner('🔥 ГОДИНА '+(hourN+1)+'/8: '+ph.n);
+    IB.journalAdd('🔥','ГОДИНА '+(hourN+1)+' — '+ph.n);
     const sc=IB.PARTY_SCENES[IB.ri(0,IB.PARTY_SCENES.length-1)];
     p.scenes.push(sc);
     IB.journalAdd(sc.i,sc.t+' — '+sc.x);
-    IB.showScene(sc.i,sc.t,sc.x);
+    IB.showScene(sc.i,sc.t,sc.x,true);
     IB.SFX.toast();
     const mb=p.dry?4:8; /* v1.5: суха гулянка гріє менше */
     for(const h of IB.E.team){
@@ -2491,8 +2831,10 @@ IB.partyTick=(dt)=>{
     const mx=IB.E.team.find(h=>h.id==='maksym');
     if(mx&&IB.M.random()<0.4){mx.mood=100;IB.toast('ROCK розганяє гулянку! Настрій групи — 100','fun');}
   }
+  IB.partyFxTick(dt); /* v2.3: глічі, бульбашки-діалоги, «попадали» */
   if(p.t>=8){
     p.active=false;p.t=0;
+    IB.partyFx.lvl=0;for(const h of IB.E.team){h.lying=0;h.bubble=null;}
     IB.G.hangover=6; /* до 12:00 */
     IB.MUSIC.day();
     IB.banner('ГУЛЯНКА ЗАВЕРШИЛАСЯ. ПОХМІЛЛЯ ДО 12:00...');
@@ -2650,18 +2992,22 @@ IB.questCheck=()=>{
 };
 /* v1.2: фото на вершині — бонус і журнал */
 IB.photoTaken=(spot)=>{
-  IB.G.album.push({spot:spot.id,name:spot.name,kind:spot.kind,alt:spot.alt||0,
-    day:IB.G.day,time:IB.clockStr(),wx:IB.G.wx.type,seed:IB.G.day*17+IB.G.album.length});
-  IB.G.stats.photos++;
+  /* v2.4: фотосерія — ТРИ КАДРИ з різними позами групи */
+  const base=IB.G.day*17+IB.G.album.length;
+  for(let v=0;v<3;v++)IB.G.album.push({spot:spot.id,name:spot.name,kind:spot.kind,alt:spot.alt||0,
+    day:IB.G.day,time:IB.clockStr(),wx:IB.G.wx.type,seed:base+v*13,var:v});
+  IB.G.stats.photos+=3;
   IB.SFX.find();
-  IB.banner('ФІОТО: '+spot.name);
-  IB.journalAdd('📷','Фотокартка «'+spot.name+'» — '+IB.clockStr()+', день '+IB.G.day+'. '+
-    (spot.alt?('Висота '+spot.alt+' м. '):'')+'Група сміється — останній кадр м\'явся TOXIC.');
-  if(spot.kind==='peak'){IB.G.money+=20;IB.toast('+₴20 — редактор «Карпатського Тижня» купує кадр','gold');}
-  IB.toast('Фото в альбомі (група → ФОТОАЛЬБОМ)','gold');
+  IB.banner('ФІОТО ×3 КАДРИ: '+spot.name);
+  IB.journalAdd('📷','Фотосерія «'+spot.name+'» — три кадри: УСІ РАЗОМ, СТРИБОК!, ПРАПОРЕЦЬ. '+
+    IB.clockStr()+', день '+IB.G.day+'.'+(spot.alt?' Висота '+spot.alt+' м.':'')+
+    ' Найбільше всіх м\'явся TOXIC.');
+  if(spot.kind==='peak'){IB.G.money+=20;IB.toast('+₴20 — редактор «Карпатського Тижня» купує серію','gold');}
+  IB.toast('3 кадри в альбомі (група → ФОТОАЛЬБОМ)','gold');
   IB.saveGame();
   IB.questCheck();
 };
+
 
 IB.questT=()=>{const q=IB.QUESTS.find(q=>q.id===IB.G.quests.active);return q?q.t:'ВСЕ ЗРОБЛЕНО — ЛЕГЕНДА ЖИВЕ';};
 
@@ -2815,7 +3161,7 @@ IB.eventsTick=(dt)=>{
   }
 };
 
-/* ---------- v1.5: ШУКАТИ — група кричить, загублені йдуть на голос ---------- */
+/* ---------- v1.5/v2.2: ГУКАТИ — група кричить, загублені біжать на голос ---------- */
 IB.SHOUTS=['АУ-У-У!','ГЕ-ЕЙ!','ЛЕГЕНДО!','ВІКТОРЕ!','ТИ ДЕ?!','ВІДКЛИКАЙСЯ!','ЛЮ-У-ДИ!'];
 IB.startSearch=()=>{
   if(IB.G.party.active||IB.G.trip.active){IB.toast('Зараз не до пошуку — гулянка триває!','red');return;}
@@ -2840,8 +3186,8 @@ IB.startSearch=()=>{
     m.gotoSound=true;m.target=null;m.taskT=0;
   }
   IB.G.search={t:0,lost:lost.map(h=>h.name)};
-  IB.banner('🔎 ШУКАЄМО: '+lost.map(h=>h.name).join(', ')+' — група кричить «АУ!»');
-  IB.journalAdd('🔎','Пошук: '+lost.map(h=>h.name).join(', ')+'. Група кричить — загублені йдуть на голос.');
+  IB.banner('🔊 ГУКАЄМО: '+lost.map(h=>h.name).join(', ')+' — «АУ-У-У!»');
+  IB.journalAdd('🔊','Гук: '+lost.map(h=>h.name).join(', ')+'. Група кричить — загублені біжать на голос.');
   IB.SFX.alert();
 };
 function modeSearchBlock(){
@@ -2865,7 +3211,7 @@ IB.searchTick=(dt)=>{
   IB.G.search.t+=dt;
   if(IB.G.search.t>30){
     IB.G.search=null;
-    IB.toast('Пошук завершено — хто загубився, все одно йде на голоси','gold');
+    IB.toast('Гук відлунав — хто загубився, все одно біжить на голоси','gold');
   }
 };
 
@@ -3149,17 +3495,21 @@ IB.renderWorld=(g,dt)=>{
 
   /* ---------- ніч/вогонь світло ---------- */
   if(nf>0.05){
-    g.fillStyle='rgba(8,14,26,'+(nf*0.55)+')';g.fillRect(0,0,480,336);
+    /* v2.3: мерехтіння ночі на вечірці */
+    const nfF=nf*(IB.G.party.active?(0.93+0.07*IB.M.sin(performance.now()*0.02)):1);
+    g.fillStyle='rgba(8,14,26,'+(nfF*0.55).toFixed(3)+')';g.fillRect(0,0,480,336);
     /* світло вогнів */
     for(const c of W.CAMPS.concat(IB.G.wildCamps||[])){
       const cc=IB.G.camps[c.id];
       if(cc&&cc.fire&&cc.fuel>0){
         const s=tileScreen(c.x,c.y);
         const fx=s.x+ox,fy=s.y+oy-6;
-        const fl=0.75+IB.M.sin(performance.now()*0.01)*0.15;
+        /* v2.3: вогонь пульсує в такт вечірці — світло міняється */
+        const pk=IB.G.party.active?(1.32+IB.M.sin(performance.now()*0.017)*0.16):1;
+        const fl=(0.75+IB.M.sin(performance.now()*0.01)*0.15)*pk;
         const gr=g.createRadialGradient(fx,fy,4,fx,fy,80*fl);
-        gr.addColorStop(0,'rgba(240,180,60,'+(0.5*nf)+')');
-        gr.addColorStop(0.5,'rgba(220,120,40,'+(0.22*nf)+')');
+        gr.addColorStop(0,'rgba(240,180,60,'+IB.M.min(0.85,0.5*nf*pk).toFixed(3)+')');
+        gr.addColorStop(0.5,'rgba(220,120,40,'+IB.M.min(0.5,0.22*nf*pk).toFixed(3)+')');
         gr.addColorStop(1,'rgba(0,0,0,0)');
         g.fillStyle=gr;g.beginPath();g.arc(fx,fy,80*fl,0,7);g.fill();
       }
@@ -3245,6 +3595,46 @@ IB.renderWorld=(g,dt)=>{
       g.beginPath();g.arc(fx,fy,8,0,7);g.stroke();
       g.fillStyle='rgba(176,106,224,'+pl+')';g.fillRect(fx-2,fy-10,4,4);
     }
+  }
+
+  /* ---------- v2.3: ВЕЧІРКОВІ ГЛІЧІ — п'яні кольори, мерехтіння, зсув смуг ---------- */
+  if(IB.partyFx&&IB.partyFx.lvl>0.02&&IB.G.party.active){
+    const F=IB.partyFx,t=performance.now()*0.001,lvl=F.lvl*(0.85+0.15*IB.M.sin(t*2.2));
+    if(F.mode==='psy'||F.mode==='psy2'){
+      const hue=(t*(F.mode==='psy2'?85:50))%360;
+      g.fillStyle='hsla('+hue.toFixed(0)+',80%,55%,'+(0.10+0.08*lvl).toFixed(3)+')';g.fillRect(0,0,480,336);
+      g.fillStyle='hsla('+((hue+140)%360).toFixed(0)+',85%,60%,'+(0.07*lvl).toFixed(3)+')';g.fillRect(0,0,480,336);
+    }else if(F.mode==='blue'){
+      g.fillStyle='rgba(70,100,170,'+(0.16+0.06*lvl).toFixed(3)+')';g.fillRect(0,0,480,336);
+      g.fillStyle='rgba(24,34,64,'+(0.12*lvl).toFixed(3)+')';g.fillRect(0,0,480,336);
+    }else if(F.mode==='grey'){
+      g.fillStyle='rgba(118,124,130,'+(0.20+0.05*lvl).toFixed(3)+')';g.fillRect(0,0,480,336);
+    }else{
+      g.fillStyle='rgba(255,150,60,'+(0.08*lvl).toFixed(3)+')';g.fillRect(0,0,480,336);
+    }
+    /* мерехтіння */
+    if(IB.M.random()<0.12*lvl){g.fillStyle='rgba(255,242,205,'+(0.05+IB.M.random()*0.10).toFixed(3)+')';g.fillRect(0,0,480,336);}
+    /* гліч-смуги: зсув горизонтальних шматків кадру */
+    if(IB.M.random()<0.14*lvl){
+      const n=1+IB.ri(0,3);
+      for(let i=0;i<n;i++){
+        const sy=IB.ri(0,318),hh=2+IB.ri(0,7),dx=IB.rnd(-12,12);
+        g.drawImage(g.canvas,0,sy,480,hh,dx,sy,480,hh);
+      }
+    }
+    /* подвійний зір на розгулі */
+    if(lvl>0.55){g.globalAlpha=0.12+0.06*(lvl-0.55);g.drawImage(g.canvas,IB.M.sin(t*3.1)*4,IB.M.cos(t*2.3)*2.5);g.globalAlpha=1;}
+    /* CSS-фільтр канваса — GPU, міняється з фазою */
+    const cv=g.canvas;let flt='';
+    if(F.mode==='psy')flt='saturate(1.7) hue-rotate('+(IB.M.sin(t*1.3)*40*lvl).toFixed(0)+'deg)';
+    else if(F.mode==='psy2')flt='saturate(1.9) contrast(1.06) hue-rotate('+(IB.M.sin(t*2.1)*60*lvl).toFixed(0)+'deg)';
+    else if(F.mode==='blue')flt='saturate(0.72) hue-rotate(-12deg) brightness(0.9)';
+    else if(F.mode==='grey')flt='grayscale(0.6) brightness(0.95)';
+    else flt='saturate('+(1+0.3*lvl).toFixed(2)+')';
+    if(cv._pf!==flt){cv.style.filter=flt;cv._pf=flt;}
+  }else{
+    const cv=g.canvas;
+    if(cv._pf){cv.style.filter='';cv._pf='';}
   }
 };
 
@@ -3610,7 +4000,13 @@ function drawFarm(g,f,ox,oy){
 function drawHero(g,h,ox,oy,dt){
   const s=tileScreen(h.x,h.y);
   const x=s.x+ox+16,y=s.y+oy+10-h.swim*4;
-  IB.drawPerson(g,x,y,h.dir,h.fr,h.look);
+  if(IB.G.party.active&&h.lying>0){
+    /* v2.3: «упав / попадали» — герой лежить біля вогню */
+    g.save();g.translate(x,y-2);g.rotate(h.lieDir||1.35);IB.drawPerson(g,0,0,'d',0,h.look);g.restore();
+  }else{
+    const hop=(IB.G.party.active&&!h.swim)?IB.M.abs(IB.M.sin(performance.now()*0.009+h.x*3.1))*2.2:0;
+    IB.drawPerson(g,x,y-hop,h.dir,h.fr,h.look);
+  }
   /* v1.3: ІМ'Я, ЩО СВІТИТЬСЯ над головою */
   const nc=h.def&&h.def.nameColor?h.def.nameColor:'#f0d050';
   const ny=y-36+IB.M.sin(performance.now()*0.003+h.x*1.7)*1.6;
@@ -3639,9 +4035,23 @@ function drawHero(g,h,ox,oy,dt){
     IB.P(g,x+6,y-9,3,2,'#2e3440');
     IB.P(g,x+9,y-8.5,1.6,1,'rgba(255,240,180,0.95)');
   }
-  if(IB.G.party.active){
+  if(IB.G.party.active&&h.lying>0){
+    g.font='9px monospace';g.fillText('💤',x+6,y-12);
+  }else if(IB.G.party.active){
     const bob=IB.M.sin(performance.now()*0.006+h.x)*3;
     g.font='11px monospace';g.fillText(['🎵','🎶','💃','🍻'][IB.ri(0,3)],x-7,y-34+bob);
+  }
+  /* v2.3: бульбашки-діалоги над героями */
+  if(h.bubble){
+    const b=h.bubble;g.font='7px monospace';
+    const w=IB.M.min(IB.M.max(g.measureText(b.txt).width+10,26),150);
+    const bx=IB.M.max(3,IB.M.min(480-w-3,x-w/2)),by=IB.M.max(18,y-56);
+    g.globalAlpha=0.93;
+    IB.P(g,bx,by-9,w,12,'#f2efe4');
+    g.strokeStyle=(h.def&&h.def.nameColor)||'#f0d050';g.lineWidth=1;g.strokeRect(bx+0.5,by-8.5,w-1,11);
+    IB.PA(g,[[x-3,by+3.5],[x+3,by+3.5],[x,by+7]],'#f2efe4');
+    g.fillStyle='#22262e';g.textAlign='center';g.fillText(b.txt,bx+w/2,by);g.textAlign='left';
+    g.globalAlpha=1;
   }
 }
 function drawNpc(g,n,ox,oy){
@@ -3890,10 +4300,11 @@ IB.drawBigMapBase=(canvas)=>{
 
 /* ---------- ТРІП-ФХ ОНОВЛЕННЯ ---------- */
 IB.updateFx=(dt)=>{
-  /* спавн галюцинацій під час тріпу */
-  if(IB.G.trip.active){
+  /* спавн галюцинацій: тріп «5 г» + ГРИБНИЙ ТРІП/РОЗГУЛ на вечірці (v2.3) */
+  const psy=IB.G.trip.active||IB.partyPsy();
+  if(psy){
     const L=IB.E.team[0];
-    if(IB.tripFx.length<26&&IB.M.random()<dt*4){
+    if(IB.tripFx.length<26&&IB.M.random()<dt*(IB.G.trip.active?4:1.8)){
       const kinds={viktor:['ghost','star'],andriy:['food','star'],taras:['note','star'],petro:['line','eye'],maksym:['shadow','star']};
       const kk=kinds[L.id]||['star'];
       const a=IB.rnd(0,6.28),r=IB.rnd(3,12);
@@ -3908,7 +4319,7 @@ IB.updateFx=(dt)=>{
     fx.a=IB.M.min(1,fx.life-fx.t);
     if(fx.t>=fx.life)IB.tripFx.splice(i,1);
   }
-  if(!IB.G.trip.active&&IB.tripFx.length)IB.tripFx.length=IB.M.max(0,IB.tripFx.length-1);
+  if(!psy&&IB.tripFx.length)IB.tripFx.length=IB.M.max(0,IB.tripFx.length-1);
 };
 
 
@@ -3951,6 +4362,12 @@ function drawCar(g,c,ox,oy,dt){
 }
 
 /* ==================== v1.2: СХОДЖЕННЯ (мандрівка) ==================== */
+/* ==================== v2.4 «ФІНАЛ»: СХОДЖЕННЯ — ІЗОМЕТРІЯ ====================
+   Гора-піраміда з терасами (ліс смерек → полонина → скелі → сніжники),
+   звивиста стежка-серпантин, вся група ЙДЕ по ній (анімація кроків) і
+   штурмує вершину; хмари у ТРИ ШАРИ (за вершинами, море хмар під вершиною,
+   перед камерою); ізо-вершини сусіди; прапорець+тур / озеро / стела на
+   фініші; експедиція — ізо-траса з ваном, стовпами і пилом. */
 IB.ASC_STAGES={
   peak:['ПІДНІЖЖЯ — СТАРА СТЕЖКА','ГРАВІЙ І СМЕРЕКИ','ПОЛОНИНА — ВІТЕР З ХРЕБТА','СКЕЛЬНІ ВИХОДИ','СНІЖНИК — ОСТАННІЙ РИВОК','ВЕРШИНА'],
   lake:['ПІДНІЖЖЯ','ЯЛИНОВИЙ ЛІС','ПОЛОНИНА','БЕРЕГ ОЗЕРА'],
@@ -3958,53 +4375,207 @@ IB.ASC_STAGES={
   expedition:['ЗАВАНТАЖЕННЯ В БІЛИЙ ВАН','ВОЛИНСЬКА ТРАСА','ЗАЛІСІННЯ','ПЛЯЖ СВІТЯЗЯ'],
 };
 IB.TRAVEL_CUR=null;
+/* звивиста стежка схилом — група йде по ній у ланцюжку */
+IB._ascTrail=[[288,268],[196,256],[296,244],[204,232],[282,218],[208,204],[270,190],[214,176],[256,162],[222,148],[250,134],[232,120],[246,106],[240,98]];
+IB._ascTrailTot=(()=>{
+  let t=0;
+  for(let i=1;i<IB._ascTrail.length;i++)
+    t+=IB.dist(IB._ascTrail[i-1][0],IB._ascTrail[i-1][1],IB._ascTrail[i][0],IB._ascTrail[i][1]);
+  return t;
+})();
+IB._ascPos=(s)=>{
+  s=IB.clamp(s,0,1);
+  const d=s*IB._ascTrailTot;let acc=0;
+  for(let i=1;i<IB._ascTrail.length;i++){
+    const a=IB._ascTrail[i-1],b=IB._ascTrail[i];
+    const seg=IB.dist(a[0],a[1],b[0],b[1]);
+    if(acc+seg>=d){
+      const t2=IB.clamp((d-acc)/IB.M.max(1,seg),0,1),dx=b[0]-a[0];
+      return {x:IB.lerp(a[0],b[0],t2),y:IB.lerp(a[1],b[1],t2),
+        dir:dx>6?'r':(dx<-6?'l':(b[1]<a[1]?'u':'d'))};
+    }
+    acc+=seg;
+  }
+  const e=IB._ascTrail[IB._ascTrail.length-1];
+  return {x:e[0],y:e[1],dir:'u'};
+};
+IB._ascCloud=(g,x,y,sc,al)=>{
+  g.fillStyle='rgba(240,246,252,'+al+')';
+  g.beginPath();g.ellipse(x,y,26*sc,9*sc,0,0,7);g.fill();
+  g.beginPath();g.ellipse(x+15*sc,y-6*sc,17*sc,8*sc,0,0,7);g.fill();
+  g.beginPath();g.ellipse(x-17*sc,y-4*sc,14*sc,7*sc,0,0,7);g.fill();
+  g.beginPath();g.ellipse(x-2*sc,y-10*sc,12*sc,6*sc,0,0,7);g.fill();
+};
+IB._ascPine=(g,x,y,sc,c)=>{
+  IB.P(g,x-1.5*sc,y-8*sc,3*sc,9*sc,'#3a2c18');
+  IB.PA(g,[[x,y-20*sc],[x-6*sc,y-7*sc],[x+6*sc,y-7*sc]],c||'#1e4228');
+  IB.PA(g,[[x,y-26*sc],[x-4.5*sc,y-13*sc],[x+4.5*sc,y-13*sc]],c||'#265232');
+};
+/* далека ізо-вершина зі сніжною шапкою */
+IB._bgPeak=(g,ax,ay,bw,hgt,c1,c2)=>{
+  IB.PA(g,[[ax,ay],[ax-bw,ay+hgt],[ax,ay+hgt]],c1);
+  IB.PA(g,[[ax,ay],[ax,ay+hgt],[ax+bw,ay+hgt]],c2);
+  IB.PA(g,[[ax,ay],[ax-bw*0.26,ay+hgt*0.26],[ax,ay+hgt*0.26]],'#e8f0f4');
+  IB.PA(g,[[ax,ay],[ax,ay+hgt*0.26],[ax+bw*0.26,ay+hgt*0.26]],'#f0f6f8');
+};
+/* ГОРА — піраміда з терасами за висотою: сніг / скелі / полонина / ліс */
+IB._ascMtn=(g,ax,ay,bw,hgt)=>{
+  const bands=[[0,0.22,'#eef4f8','#dce8f0'],[0.22,0.42,'#88928c','#58605a'],
+               [0.42,0.62,'#6a8448','#4c6232'],[0.62,1.02,'#2e5230','#1e4228']];
+  for(const b of bands){
+    const y1=ay+hgt*b[0],y2=ay+hgt*b[1];
+    IB.PA(g,[[ax-bw*b[0],y1],[ax,y1],[ax,y2],[ax-bw*b[1],y2]],b[2]);
+    IB.PA(g,[[ax,y1],[ax+bw*b[0],y1],[ax+bw*b[1],y2],[ax,y2]],b[3]);
+  }
+  /* піедмонт — темне лісове підніжжя (третя грань) */
+  IB.PA(g,[[ax-bw,ay+hgt],[ax,ay+hgt+hgt*0.32],[ax+bw,ay+hgt]],'#16281a');
+  /* фактура: сніг блищить, осип — каміння, полонина — квіти, ліс — хвоїнки */
+  for(let i=0;i<110;i++){
+    const t=0.03+IB.hsh(i,1,950)*0.97,y=ay+t*hgt;
+    const side=IB.hsh(i,2,951)<0.5?-1:1;
+    const lim=IB.M.max(8,bw*IB.M.min(t,1)-10);
+    const x=ax+side*(6+IB.hsh(i,3,952)*lim);
+    let c;
+    if(t<0.22)c=IB.hsh(i,4,953)<0.5?'#ffffff':'#c8d8e4';
+    else if(t<0.42)c=IB.hsh(i,4,953)<0.5?'#4e5a54':'#7a847e';
+    else if(t<0.62)c=['#f0d050','#e86a8a','#9a70d0','#7e9454'][i&3];
+    else c=IB.hsh(i,4,953)<0.6?'#16321e':'#3a5a30';
+    g.fillStyle=c;g.fillRect(x|0,y|0,1.6,1.6);
+  }
+};
 IB.drawAscent=(g,dt)=>{
   const C=IB.TRAVEL_CUR;if(!C)return;
   const r=C.route;
   const stages=IB.ASC_STAGES[r.kind]||IB.ASC_STAGES.peak;
   const st=IB.M.min(stages.length-1,IB.M.floor(C.prog/100*stages.length));
-  const wx=IB.G.wx.type,nf=IB.nightFactor();
-  /* небо за висотою */
-  const hh=IB.M.floor(168+ (C.prog/100)*90);
+  const wx=IB.G.wx.type,nf=IB.nightFactor(),gh=IB.goldenHour();
+  const T=performance.now()*0.001;
+  /* ---------- НЕБО ---------- */
   const sky=g.createLinearGradient(0,0,0,336);
-  sky.addColorStop(0,nf>0.5?'#0a1226':(r.kind==='expedition'?'#7ab2d8':'#28598c'));
-  sky.addColorStop(1,nf>0.5?'#101830':'#a8c4d8');
+  if(nf>0.5){sky.addColorStop(0,'#0a1226');sky.addColorStop(1,'#182338');}
+  else if(wx==='sun'){sky.addColorStop(0,'#28598c');sky.addColorStop(1,gh>0.4?'#e8c8a0':'#a8c4d8');}
+  else if(wx==='snow'||wx==='blizzard'){sky.addColorStop(0,'#8aa4b8');sky.addColorStop(1,'#d8e4ee');}
+  else if(wx==='rain'||wx==='storm'){sky.addColorStop(0,'#3a4452');sky.addColorStop(1,'#7a8a98');}
+  else {sky.addColorStop(0,'#5a7a94');sky.addColorStop(1,'#b8c8d4');}
   g.fillStyle=sky;g.fillRect(0,0,480,336);
-  /* сонце/місяць */
-  g.fillStyle=nf>0.5?'#e8e8d8':'#f8e8a0';
-  g.beginPath();g.arc(400,60-(r.kind==='expedition'?0:20),12,0,7);g.fill();
-  /* хребти — рухаються вниз з висотою */
-  const shift=C.prog*1.6;
-  const rcols=nf>0.5?['#0e1a2a','#122236','#182e48']:['#2a4a5c','#3a6a74','#4a8a8c'];
+  if(nf>0.5)for(let i=0;i<42;i++){
+    const sx=IB.hsh(i,1,940)*480,sy=IB.hsh(i,2,941)*150;
+    g.fillStyle='rgba(215,228,255,'+(0.35+0.45*IB.hsh(i,3,942))*(0.55+0.45*IB.M.sin(T*2+i))+')';
+    g.fillRect(sx,sy,1.4,1.4);
+  }
+  /* сонце / місяць */
+  g.fillStyle=nf>0.5?'#e8e8d8':(gh>0.4?'#f8c070':'#f8e8a0');
+  g.beginPath();g.arc(398,62,11,0,7);g.fill();
+  if(nf<=0.5){g.fillStyle='rgba(248,232,160,0.16)';g.beginPath();g.arc(398,62,20,0,7);g.fill();}
+  /* птахи у небі */
+  g.strokeStyle='rgba(30,40,50,0.5)';g.lineWidth=1.3;
   for(let i=0;i<3;i++){
-    g.fillStyle=rcols[i];
-    g.beginPath();g.moveTo(0,336);
-    for(let x=0;x<=480;x+=16){
-      const p=IB.hsh(i*100+(x/16|0),3,900+i);
-      g.lineTo(x,110+i*46+shift*(0.6+i*0.35)-p*44);
+    const bx=(T*24+i*150)%540-30,by=66+i*20+IB.M.sin(T*1.6+i*2)*5;
+    const w2=IB.M.sin(T*7+i*2)*2.5;
+    g.beginPath();g.moveTo(bx-4,by+w2);g.lineTo(bx,by);g.lineTo(bx+4,by+w2);g.stroke();
+  }
+  if(r.kind==='expedition'){IB._ascExpedition(g,C,st,T,nf);}
+  else{
+    /* ---------- ХМАРИ ЗА ВЕРШИНАМИ ---------- */
+    for(let i=0;i<4;i++){
+      const cx=((i*150+T*9)%620)-70,cy=96+IB.hsh(i,4,943)*58;
+      IB._ascCloud(g,cx,cy,0.8+i*0.15,0.75);
     }
-    g.lineTo(480,336);g.fill();
+    /* ---------- ІЗО-ВЕРШИНИ-СУСІДИ ---------- */
+    const pc1=nf>0.5?'#16283e':'#3a5a6c',pc2=nf>0.5?'#1e3450':'#4a7280';
+    IB._bgPeak(g,60,196,56,52,pc1,pc2);
+    IB._bgPeak(g,428,186,52,58,pc1,pc2);
+    IB._bgPeak(g,118,224,34,28,pc1,pc2);
+    /* ---------- ГОРА ---------- */
+    IB._ascMtn(g,240,88,174,152);
+    /* смереки підніжжям (за стежкою) */
+    for(let i=0;i<11;i++){
+      const px=74+i*34+IB.hsh(i,5,944)*16,py=252+IB.hsh(i,6,945)*30;
+      if(IB.dist(px,py,288,268)>26)IB._ascPine(g,px,py,0.9+IB.hsh(i,7,946)*0.7);
+    }
+    /* ---------- МОРЕ ХМАР ПІД ВЕРШИНОЮ (з ~62% підйому) ---------- */
+    if(C.prog>62){
+      for(let i=0;i<12;i++){
+        const cx=((i*46+T*11)%640)-80;
+        g.fillStyle='rgba(236,244,250,0.55)';
+        g.beginPath();g.ellipse(cx,160+IB.M.sin(i*1.7)*8,40,9,0,0,7);g.fill();
+        g.beginPath();g.ellipse(cx+20,152+IB.M.sin(i*1.3)*6,24,7,0,0,7);g.fill();
+      }
+    }
+    /* ---------- СТЕЖКА-СЕРПАНТИН ---------- */
+    g.lineCap='round';g.lineJoin='round';
+    g.beginPath();g.moveTo(IB._ascTrail[0][0],IB._ascTrail[0][1]);
+    for(let i=1;i<IB._ascTrail.length;i++)g.lineTo(IB._ascTrail[i][0],IB._ascTrail[i][1]);
+    g.globalAlpha=0.9;
+    g.strokeStyle='#241a10';g.lineWidth=7;g.stroke();
+    g.strokeStyle='#8a6a42';g.lineWidth=4;g.stroke();
+    g.setLineDash([4,8]);g.strokeStyle='#a87848';g.lineWidth=1.6;g.stroke();g.setLineDash([]);
+    g.globalAlpha=1;
+    /* ---------- ФІНІШ СТЕЖКИ: ПРАПОРЕЦЬ+ТУР / ОЗЕРО / СТЕЛА ---------- */
+    if(r.kind==='lake'){
+      g.fillStyle='#28565f';g.beginPath();g.ellipse(240,90,46,13,0,0,7);g.fill();
+      g.fillStyle='#3a6c74';g.beginPath();g.ellipse(240,88,34,8,0,0,7);g.fill();
+      g.fillStyle='rgba(170,225,240,0.6)';g.fillRect(216,86,14,1.5);g.fillRect(240,90,18,1.5);
+      for(let i=0;i<7;i++){const a=i/7*6.28;
+        g.fillStyle='#58605a';g.beginPath();g.ellipse(240+IB.M.cos(a)*48,90+IB.M.sin(a)*13,4,2.4,0,0,7);g.fill();}
+    }else if(r.kind==='border'){
+      IB.isoBox(g,228,84,26,12,5,'#88928c','#58605a','#6e7872');
+      IB.P(g,234,58,12,30,'#e8e8e2');
+      IB.P(g,234,58,12,5,'#b82840');IB.P(g,234,74,12,6,'#2a3e5c');
+    }else{
+      IB.isoBox(g,233,96,14,7,4,'#58605a','#4e5a54','#6e7872'); /* тур з каміння */
+      IB.P(g,239,80,2,17,'#5e4628');
+    }
+    /* ---------- ГРУПА ЙДЕ І ШТУРМУЄ (анімація кроків, ланцюжок) ---------- */
+    if(C.bubT===undefined){C.bubT=2.5;C.bub=null;}
+    C.bubT-=dt;
+    if(C.bubT<=0){
+      C.bubT=3.5+IB.rnd(0,3);
+      const L=['Далі, хлопці!','Ой, вітєр!','Гора кличе!','Красота!','Смалина б тут…','Тричі «гей»!','Ще ривок!','Дихай, дихай…'];
+      C.bub={i:IB.ri(0,4),t:2.4,txt:L[IB.ri(0,L.length-1)]};
+    }
+    if(C.bub){C.bub.t-=dt;if(C.bub.t<=0)C.bub=null;}
+    const mem=[];
+    for(let i=0;i<5;i++){
+      const s=C.prog/100-i*0.05;
+      mem.push({i:i,p:IB._ascPos(s)});
+    }
+    mem.sort((a,b)=>a.p.y-b.p.y);
+    for(const m of mem){
+      const h=IB.E.team[m.i];if(!h)continue;
+      const fr=1+(IB.M.floor(T*6+m.i*0.8)&1);
+      const sc=IB.lerp(0.68,0.95,IB.clamp((m.p.y-98)/180,0,1));
+      IB.drawPerson(g,m.p.x,m.p.y,m.p.dir,fr,h.look,sc);
+      if(C.bub&&C.bub.i===m.i){
+        g.font='7px monospace';
+        const w=C.bub.txt.length*4.4+10;
+        g.fillStyle='rgba(250,248,238,0.94)';g.fillRect(m.p.x-w/2,m.p.y-30*sc-9,w,11);
+        g.fillStyle='#241a10';g.fillText(C.bub.txt,m.p.x-w/2+5,m.p.y-30*sc);
+      }
+    }
+    /* прапорець махає з вершини */
+    if(r.kind==='peak'){
+      const fw=IB.M.sin(T*3)*2.5;
+      IB.PA(g,[[241,80],[251+fw,83],[241,87]],'#c83828');
+    }
+    /* пориви вітру на полонині (етап 3+) */
+    if(st>=2&&nf<=0.5){
+      g.strokeStyle='rgba(255,255,255,0.28)';g.lineWidth=1.4;
+      for(let i=0;i<3;i++){
+        const wy=186+i*9,wx2=((T*(46+i*14)+i*260)%600)-60;
+        g.beginPath();g.moveTo(wx2,wy);g.quadraticCurveTo(wx2+30,wy-4,wx2+64,wy);g.stroke();
+      }
+    }
+    /* ambient-сніжок на сніжниках (етап 5+) */
+    if(r.kind==='peak'&&st>=4){
+      g.fillStyle='rgba(240,248,255,0.8)';
+      for(let i=0;i<26;i++){
+        const xx=(IB.hsh(i,1,922)*480+T*14)%480,yy=(IB.hsh(i,2,923)*336+T*26)%336;
+        g.fillRect(xx,yy,1.6,1.6);
+      }
+    }
   }
-  /* сніжники на верхніх стадіях */
-  if(st>=4){g.fillStyle='rgba(240,248,255,0.75)';g.fillRect(0,336-(st-3)*26,480,(st-3)*26);}
-  /* стежка вгору */
-  g.strokeStyle='rgba(230,215,180,0.5)';g.lineWidth=4;
-  g.beginPath();g.moveTo(60,336);g.quadraticCurveTo(240,240-C.prog*0.6,420,120-C.prog*0.4);g.stroke();
-  /* група — лінією по стежці (v1.3: більші постаті, ширший лад) */
-  const teamT=Math.sin(performance.now()*0.004)*4;
-  for(let i=0;i<5;i++){
-    const tx=64+i*42,ty=312-i*30-teamT*0.3+IB.hsh(i,4,910)*8;
-    const h=IB.E.team[i];
-    const px=IB.lerp(tx,tx+32,C.prog/140),py=IB.lerp(ty,ty-48,C.prog/140);
-    IB.drawPerson(g,px,py,i%2?'r':'d',0,h.look);
-  }
-  /* експедиція: авто на стадії 0-2 */
-  if(r.kind==='expedition'&&st<3){
-    g.fillStyle='#e8e8e2';g.fillRect(150,250-st*20,64,20);
-    g.fillStyle='#2a3e5c';g.fillRect(158,244-st*20,44,8);
-    g.fillStyle='#1a1a1a';g.fillRect(156,268-st*20,12,6);g.fillRect(196,268-st*20,12,6);
-  }
-  /* погода-частинки прості */
+  /* ---------- погода-частинки ---------- */
   if(wx==='rain'||wx==='hail'){g.strokeStyle='rgba(160,200,230,0.5)';g.beginPath();
     for(let i=0;i<40;i++){const xx=IB.hsh(i,1,920)*480,yy=(IB.hsh(i,2,921)*336+performance.now()*0.25*(wx==='hail'?1.6:1))%336;
       g.moveTo(xx,yy);g.lineTo(xx-2,yy+8);}g.stroke();}
@@ -4012,7 +4583,13 @@ IB.drawAscent=(g,dt)=>{
     for(let i=0;i<60;i++){const xx=(IB.hsh(i,1,922)*480+performance.now()*0.02)%480,yy=(IB.hsh(i,2,923)*336+performance.now()*0.05)%336;
       g.fillRect(xx,yy,2,2);}}
   if(wx==='fog'){g.fillStyle='rgba(180,195,210,0.35)';g.fillRect(0,0,480,336);}
-  /* темрява */
+  /* ---------- ХМАРИ ПЕРЕД КАМЕРОЮ (паралакс) ---------- */
+  for(let i=0;i<4;i++){
+    const cx=((i*170+T*17)%640)-80,cy=246+IB.hsh(i,8,947)*44;
+    IB._ascCloud(g,cx,cy,1.25,0.42);
+  }
+  /* золота година + темрява */
+  if(gh>0.2&&nf<0.5){g.fillStyle='rgba(248,180,90,'+(gh*0.13)+')';g.fillRect(0,0,480,336);}
   if(nf>0.1){g.fillStyle='rgba(10,16,30,'+(nf*0.45)+')';g.fillRect(0,0,480,336);}
   /* ---------- HUD СХОДЖЕННЯ ---------- */
   g.fillStyle='rgba(6,12,10,0.78)';g.fillRect(6,6,468,34);
@@ -4028,7 +4605,7 @@ IB.drawAscent=(g,dt)=>{
   g.fillStyle='#5cb878';g.fillRect(6,64,468*C.prog/100,10);
   g.font='7px monospace';g.fillStyle='#e8f0e8';
   g.fillText('ВИСОТА: '+IB.M.round((r.alt||600)*C.prog/100+((r.alt||600)>800?380:120))+' М',12,72);
-  /* статус групи компактно (v1.3 — нові імена + кольори) */
+  /* статус групи компактно */
   g.font='7px monospace';
   let sx=12;
   for(const h of IB.E.team){
@@ -4040,8 +4617,58 @@ IB.drawAscent=(g,dt)=>{
   g.font='9px monospace';g.fillStyle='#f0d050';
   g.fillText('E / КЛІК — КРОК УГОРУ • ESC — НАЗАД',130,320);
 };
+/* експедиція: ізо-траса, ван трясеться, стовпи, пил, пляж Світязя */
+IB._ascExpedition=(g,C,st,T,nf)=>{
+  /* земля: поля → залісіння → пісок і море */
+  if(st>=3){
+    g.fillStyle=nf>0.5?'#2a2418':'#c8b888';g.fillRect(0,150,480,186);
+    g.fillStyle='#28565f';g.fillRect(0,296,480,40);
+    g.fillStyle='rgba(170,225,240,0.5)';
+    for(let i=0;i<8;i++)g.fillRect((i*61+T*12)%480,302+i%4*8,16,1.5);
+    for(let i=0;i<6;i++)IB._ascPine(g,24+i*86,158+IB.hsh(i,5,962)*12,0.8+IB.hsh(i,6,963)*0.5,'#1e4228');
+  }else{
+    g.fillStyle=nf>0.5?'#16281a':(st>=2?'#2e5230':'#3a5a30');g.fillRect(0,150,480,186);
+    for(let i=0;i<(st>=2?14:9);i++){
+      const px=14+i*36+IB.hsh(i,5,960)*14,py=158+IB.hsh(i,6,961)*26;
+      IB._ascPine(g,px,py,0.8+IB.hsh(i,7,961)*0.7);
+    }
+  }
+  /* ізо-траса */
+  IB.PA(g,[[0,224],[480,212],[480,252],[0,264]],'#5e4a30');
+  IB.PA(g,[[0,230],[480,218],[480,226],[0,238]],'#6e5a3a');
+  g.strokeStyle='#c8b888';g.lineWidth=2;g.setLineDash([10,12]);
+  g.beginPath();g.moveTo(0,250);g.lineTo(480,238);g.stroke();g.setLineDash([]);
+  /* стовпи з провісами */
+  g.strokeStyle='#3a2c18';g.lineWidth=2;
+  for(let i=0;i<6;i++){
+    const px=44+i*88,py=196+IB.hsh(i,9,964)*4;
+    IB.P(g,px-1,py-26,2,26,'#3a2c18');IB.P(g,px-6,py-24,12,2,'#3a2c18');
+  }
+  g.strokeStyle='rgba(40,40,40,0.4)';g.lineWidth=1;g.beginPath();
+  for(let i=0;i<5;i++){
+    const x1=44+i*88,x2=44+(i+1)*88,y1=172+IB.hsh(i,9,964)*4,y2=172+IB.hsh(i+1,9,964)*4;
+    g.moveTo(x1,y1);g.quadraticCurveTo((x1+x2)/2,IB.M.min(y1,y2)-12,x2,y2);
+  }
+  g.stroke();
+  /* БІЛИЙ ВАН — трясеться на волинських вибоїнах */
+  const vx=IB.lerp(24,418,C.prog/100),bob=IB.M.sin(T*11)*1.3,vy=198+bob;
+  IB.isoBox(g,vx,vy,56,24,14,'#eceae2','#b8b8b0','#d0cec6');
+  IB.P(g,vx+6,vy+16,44,10,'#c8c4ba');
+  IB.P(g,vx+8,vy+17,11,7,'#2a3e5c');IB.P(g,vx+23,vy+17,10,7,'#8ac4d8');IB.P(g,vx+36,vy+17,10,7,'#8ac4d8');
+  IB.P(g,vx+9,vy+35,11,6,'#1a1a1a');IB.P(g,vx+36,vy+35,11,6,'#1a1a1a');
+  /* пил з-під коліс */
+  for(let i=0;i<3;i++){
+    g.fillStyle='rgba(180,160,120,'+(0.3-i*0.09)+')';
+    g.beginPath();g.ellipse(vx-12-i*13,236-i*4,7-i*2,4-i,0,0,7);g.fill();
+  }
+  /* бризки на пляжі */
+  if(st>=3)for(let i=0;i<4;i++){
+    g.fillStyle='rgba(220,245,250,0.5)';
+    g.beginPath();g.ellipse(60+i*120,298+IB.M.sin(T*4+i)*3,5,2,0,0,7);g.fill();
+  }
+};
 
-/* ==================== v1.2: ІНТЕР'ЄРИ ==================== */
+/* ==================== v1.2: ІНТЕР'ЄРИ ==================== *//* ==================== v1.2: ІНТЕР'ЄРИ ==================== */
 IB.INT_CUR=null;
 IB.INT_DEFS={
   house:{w:11,h:7,title:'ХАТА',owner:'ГОСПОДАР',
@@ -4151,35 +4778,62 @@ IB.drawInterior=(g,dt)=>{
 };
 
 /* ==================== v1.2: ФОТО-ПОЛАРОЇДИ ==================== */
+/* ==================== v2.4 «ФІНАЛ»: ФОТО-ПОЛАРОЇДИ — СЕРІЇ З 3 КАДРІВ ====================
+   Кожен спуск затвора — три полароїди з різними позами групи:
+   КАДР 1 «УСІ РАЗОМ», КАДР 2 «СТРИБОК!» (іскри), КАДР 3 «ПРАПОРЕЦЬ»
+   (Легінь тримає прапор, теплий фільтр). У кадрі — ізо-піраміда вершини
+   зі сніжною шапкою і прапорцем, хмари, птахи, смереки по кутах,
+   передній план, віньєтка, зерно плівки і помаранчевий штамп часу. */
+IB.PHOTO_VARS=['УСІ РАЗОМ','СТРИБОК!','ПРАПОРЕЦЬ'];
 IB.renderPhoto=(g,entry,X,Y,W,H,small)=>{
-  const P=IB.PAL,seed=entry.seed||1;
+  const seed=entry.seed||1;
   /* рамка полароїда */
-  g.fillStyle='#ece8e0';g.fillRect(X-3,Y-3,W+6,H+6+ (small?0:14));
-  /* небо за погодою */
+  g.fillStyle='#f4f0e6';g.fillRect(X-3,Y-3,W+6,H+6+(small?0:14));
   const wx=entry.wx||'sun';
+  /* небо за погодою */
   const sky=g.createLinearGradient(0,Y,0,Y+H);
   if(wx==='sun'){sky.addColorStop(0,'#28598c');sky.addColorStop(1,'#a8c4d8');}
   else if(wx==='snow'||wx==='blizzard'){sky.addColorStop(0,'#8aa4b8');sky.addColorStop(1,'#d8e4ee');}
   else if(wx==='rain'){sky.addColorStop(0,'#4a5866');sky.addColorStop(1,'#8a9aa8');}
   else {sky.addColorStop(0,'#5a6a7c');sky.addColorStop(1,'#b8c4cc');}
   g.fillStyle=sky;g.fillRect(X,Y,W,H);
-  if(wx==='sun'){g.fillStyle='#f8e8a0';g.beginPath();g.arc(X+W-14,Y+10,7,0,7);g.fill();}
+  /* сонце з ореолом */
+  if(wx==='sun'){
+    g.fillStyle='rgba(248,232,160,0.25)';g.beginPath();g.arc(X+W-14,Y+11,11,0,7);g.fill();
+    g.fillStyle='#f8e8a0';g.beginPath();g.arc(X+W-14,Y+11,6,0,7);g.fill();
+  }
+  /* хмари у кадрі */
+  for(let i=0;i<(small?3:4);i++){
+    const cx=X+W*0.1+IB.hsh(i,seed,710)*W*0.78,cy=Y+H*(0.12+IB.hsh(i,1,711)*0.2);
+    g.fillStyle='rgba(240,246,252,0.72)';
+    g.beginPath();g.ellipse(cx,cy,W*0.15,H*0.05,0,0,7);g.fill();
+    g.beginPath();g.ellipse(cx+W*0.1,cy-H*0.03,W*0.09,H*0.04,0,0,7);g.fill();
+  }
+  /* птахи */
+  g.strokeStyle='rgba(30,40,50,0.5)';g.lineWidth=1;
+  for(let i=0;i<2;i++){
+    const bx=X+W*(0.18+i*0.3),by=Y+H*(0.18+IB.hsh(i,seed,712)*0.15);
+    g.beginPath();g.moveTo(bx-3,by);g.lineTo(bx,by-2);g.lineTo(bx+3,by);g.stroke();
+  }
   /* хребти за seed */
   for(let i=0;i<3;i++){
-    g.fillStyle=['#2a4a5c','#3a6a74','#4e7a5c'][i];
+    g.fillStyle=['#31506b','#3f6a72','#547c60'][i];
     g.beginPath();g.moveTo(X,Y+H);
     for(let px=0;px<=W;px+=8){
       const v=IB.hsh(seed*100+(px/8|0),i,700+i);
-      g.lineTo(X+px,Y+H*0.45+i*H*0.16-v*H*0.24);
+      g.lineTo(X+px,Y+H*0.42+i*H*0.17-v*H*0.22);
     }
     g.lineTo(X+W,Y+H);g.fill();
   }
+  /* сюжети за типом точки */
   if(entry.kind==='peak'){
-    /* вершина з прапорцем */
-    const pkx=X+W/2,pky=Y+H*0.42-(IB.hsh(seed,9,702)*6);
-    g.fillStyle='#e8eef2';IB.PA(g,[[pkx-16,Y+H*0.8],[pkx,pky],[pkx+16,Y+H*0.8]],'#e8eef2');
-    IB.P(g,pkx-1,pky-8,2,10,'#3a3a3a');
-    IB.PA(g,[[pkx+1,pky-8],[pkx+9,pky-5],[pkx+1,pky-2]],'#c83828');
+    /* ізо-піраміда вершини зі сніжною шапкою і прапорцем */
+    const pkx=X+W*0.5,pky=Y+H*0.28;
+    IB.PA(g,[[pkx-22,Y+H*0.72],[pkx,pky],[pkx+22,Y+H*0.72]],'#88928c');
+    IB.PA(g,[[pkx-22,Y+H*0.72],[pkx,pky],[pkx,Y+H*0.72]],'#6e7872');
+    IB.PA(g,[[pkx,pky],[pkx-8,pky+10],[pkx+8,pky+10]],'#f0f6f8');
+    IB.P(g,pkx-1,pky-9,2,11,'#3a3a3a');
+    IB.PA(g,[[pkx+1,pky-9],[pkx+11,pky-6],[pkx+1,pky-3]],'#c83828');
   }else if(entry.kind==='lake'||entry.kind==='shatsk'){
     g.fillStyle='#28565f';g.fillRect(X,Y+H*0.62,W,H*0.38);
     g.fillStyle='rgba(160,220,235,0.4)';
@@ -4196,21 +4850,73 @@ IB.renderPhoto=(g,entry,X,Y,W,H,small)=>{
     IB.isoBox(g,X+W/2-18,Y+H*0.5,36,16,8,'#5e6a62','#4e5a54','#6e7872');
     IB.P(g,X+W/2-12,Y+H*0.5-8,6,8,'#5e6a62');
   }
-  /* група — 5 постатей (справжні кольори героїв) */
-  for(let i=0;i<5;i++){
-    const px=X+W*0.5-26+i*13,py=Y+H*0.82;
-    const look=IB.HERO_DEFS[i]?IB.HERO_DEFS[i].look:null;
-    IB.drawPerson(g,px,py,'d',0,look||{skin:'#e0a878',hair:'#241a10',jacket:'#5a6a3a',pants:'#3a4030'},small?0.62:0.82);
+  /* смереки по кутах кадру */
+  const pnc=small?'#16321e':'#1e4228';
+  for(let i=0;i<3;i++){
+    const by=Y+H-1;
+    IB.PA(g,[[X+6+i*7,by-10],[X+3+i*7,by],[X+9+i*7,by]],pnc);
+    IB.PA(g,[[X+W-6-i*7,by-12],[X+W-9.5-i*7,by],[X+W-2.5-i*7,by]],pnc);
   }
+  /* передній план — сніг або трава з квітами */
+  g.fillStyle=entry.kind==='peak'?'#dce8f0':'#2e5230';
+  g.fillRect(X,Y+H-5,W,5);
+  g.fillStyle=entry.kind==='peak'?'#f0f6f8':'#3a5a30';
+  g.fillRect(X,Y+H-4,W,3);
+  for(let i=0;i<8;i++){
+    g.fillStyle=entry.kind==='peak'?'#c8d8e4':['#f0d050','#e86a8a','#9a70d0'][i%3];
+    g.fillRect(X+4+IB.hsh(i,seed,713)*(W-8),Y+H-4.5,1.5,1.5);
+  }
+  /* ГРУПА — 5 постатей, пози залежать від кадру */
+  const vr=entry.var||0;
+  for(let i=0;i<5;i++){
+    const px=X+W*0.5+(i-2)*W*0.115;
+    let py=Y+H*0.88,fr=0,dir='d';
+    if(vr===1){py-=4+(i&1)*3;fr=1;if(i&1)dir='l';}
+    if(vr===2&&i>0){fr=2;if(i&1)dir='r';}
+    const look=IB.HERO_DEFS[i]?IB.HERO_DEFS[i].look:null;
+    IB.drawPerson(g,px,py,dir,fr,look||{skin:'#e0a878',hair:'#241a10',jacket:'#5a6a3a',pants:'#3a4030'},small?0.62:0.82);
+  }
+  /* КАДР 3: Легінь тримає прапор */
+  if(vr===2&&!small){
+    const fx=X+W*0.5+W*0.33;
+    IB.P(g,fx,Y+H*0.6,2,H*0.28,'#5e4628');
+    IB.PA(g,[[fx+2,Y+H*0.6],[fx+13,Y+H*0.65],[fx+2,Y+H*0.7]],'#c83828');
+  }
+  /* КАДР 2: іскри над стрибком */
+  if(vr===1){
+    g.font='7px monospace';g.fillStyle='#f8e8a0';
+    for(let i=0;i<5;i++)g.fillText('✦',X+W*0.12+IB.hsh(i,seed,716)*W*0.76,Y+H*0.34+IB.hsh(i,2,717)*H*0.22);
+  }
+  /* фільтри настрою кадру */
+  if(vr===1){g.fillStyle='rgba(110,170,255,0.10)';g.fillRect(X,Y,W,H);}
+  if(vr===2){g.fillStyle='rgba(248,180,90,0.13)';g.fillRect(X,Y,W,H);}
+  /* віньєтка + зерно плівки */
+  const vg=g.createRadialGradient(X+W/2,Y+H*0.45,W*0.3,X+W/2,Y+H*0.5,W*0.75);
+  vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,0.28)');
+  g.fillStyle=vg;g.fillRect(X,Y,W,H);
+  for(let i=0;i<24;i++){
+    g.fillStyle=IB.hsh(i,seed,718)<0.5?'rgba(255,255,255,0.05)':'rgba(0,0,0,0.06)';
+    g.fillRect(X+IB.hsh(i,1,719)*W,Y+IB.hsh(i,2,719)*H,1.4,1.4);
+  }
+  /* штамп часу як на плівці */
+  if(!small){
+    g.fillStyle='rgba(248,150,60,0.85)';g.font='6px monospace';
+    g.fillText('Д'+entry.day+' • '+entry.time,X+W-44,Y+12);
+  }
+  /* підпис */
   if(!small){
     g.fillStyle='#1a1a1a';g.font='7px monospace';g.textAlign='center';
     g.fillText(entry.name,X+W/2,Y+H+11);
     g.fillStyle='#5a5a5a';
     g.fillText('ДЕНЬ '+entry.day+' • '+entry.time+(entry.alt?' • '+entry.alt+' М':''),X+W/2,Y+H+19);
+    if(entry.var!==undefined){
+      g.fillStyle='#c83828';
+      g.fillText('КАДР '+(entry.var+1)+'/3 — '+IB.PHOTO_VARS[entry.var],X+W/2,Y+H+26);
+    }
     g.textAlign='left';
   }
 };
-IB.drawAlbumPhotoSmall=(cv,entry)=>{
+IB.drawAlbumPhotoSmall=IB.drawAlbumPhotoSmall=(cv,entry)=>{
   const g=cv.getContext('2d');
   g.imageSmoothingEnabled=false;
   g.clearRect(0,0,cv.width,cv.height);
@@ -4400,13 +5106,15 @@ IB.drawSummit=(g,dt)=>{
   g.beginPath();g.moveTo(240,30);g.lineTo(240,tY-66);g.stroke();
   g.save();g.translate(240,tY);g.rotate(ang);
   g.fillStyle='#c8b888';g.fillRect(-3,-71,6,8);   /* прищіпка */
-  IB.renderPhoto(g,IB.G.album[IB.G.album.length-1]||{name:spot.name,kind:spot.kind,day:IB.G.day,time:IB.clockStr(),wx:wx,seed:1},-56,-64,112,88,false);
+  const shots=IB.G.album.filter(a=>a.spot===spot.id&&a.day===IB.G.day);
+  const si=IB.M.min(shots.length-1,IB.M.floor(S.t/1.25));
+  IB.renderPhoto(g,shots.length?shots[si]:{name:spot.name,kind:spot.kind,day:IB.G.day,time:IB.clockStr(),wx:wx,seed:1,var:0},-56,-64,112,88,false);
   g.restore();
   /* підказка */
   if(S.t>1.2){
     g.font='7px monospace';g.textAlign='center';
     g.fillStyle='rgba(232,240,232,'+(0.55+0.35*Math.sin(S.t*4))+')';
-    g.fillText('клік / E — далі • полароїд у альбомі ✉',240,296);
+    g.fillText('клік / E — далі • КАДР '+(si+1)+'/'+shots.length+' — в альбомі ✉',240,296);
     g.textAlign='left';
   }
 };
@@ -4414,21 +5122,24 @@ IB.drawSummit=(g,dt)=>{
 </script>
 <script>
 /* VIKTOR LEGEND 2 — main.js: цикл, керування, взаємодії, панелі, діалоги, HUD */
-IB.showScene=(icon,title,text)=>{
-  const sc={icon,title,text};
+IB.showScene=(icon,title,text,nonblock)=>{
+  const sc={icon,title,text,nonblock:!!nonblock};
   if(IB._sceneOpen){(IB._sceneQueue=IB._sceneQueue||[]).push(sc);return;}
   IB._openScene(sc);
 };
 IB._openScene=(sc)=>{
-  IB._sceneOpen=true;
+  IB._sceneOpen=true;IB._sceneNonblock=!!sc.nonblock;
   IB.$('scene-icon').textContent=sc.icon;
   IB.$('scene-title').textContent=sc.title;
   IB.$('scene-text').textContent=sc.text;
   IB.$('scene').classList.remove('hidden');
   IB.SFX.ui&&IB.SFX.ui();
+  /* v2.3: сцени гулянки не заважають ходити і самі закриваються */
+  if(IB._sceneNonblock){if(IB._sceneTmr)clearTimeout(IB._sceneTmr);IB._sceneTmr=setTimeout(IB.closeScene,6000);}
 };
 IB.closeScene=()=>{
-  IB._sceneOpen=false;
+  IB._sceneOpen=false;IB._sceneNonblock=false;
+  if(IB._sceneTmr){clearTimeout(IB._sceneTmr);IB._sceneTmr=null;}
   IB.$('scene').classList.add('hidden');
   const q=IB._sceneQueue&&IB._sceneQueue.shift();
   if(q)IB._openScene(q);
@@ -4587,7 +5298,7 @@ IB.MAIN=(function(){
     IB.journalAdd('🚐','Частина 2 почалася. Після Києва група дісталася Карпат. Перший кемпінг — «Старе Вогнище».');
     IB.journalAdd('👥','Група з Києва: ЛЕГЕНДА (лідер), TOXIC (кухар), PABLO (рибалка), DIIN (майстер), ROCK (весельчак).');
     IB.banner('КАРПАТИ. ДЕНЬ ПЕРШИЙ.');
-    IB.toast('E — дія • M — багаж • TAB — карта • Q — гулянка • R — ШУКАТИ • F — фонарики • B — ТАБІР','gold');
+    IB.toast('E — дія • M — багаж • TAB — карта • Q — гулянка • R — ГУКАТИ • F — фонарики • B — ТАБІР','gold');
   }
   function startGame(){
     IB.$('title').classList.add('hidden');
@@ -4627,9 +5338,9 @@ IB.MAIN=(function(){
     IB.$('hud-money').textContent='₴'+IB.G.money;
     IB.$('hud-mtitle').textContent=IB.questT();
     IB.$('hud-mob').textContent=IB.W.zoneAt(L.x,L.y);
-    if(IB.G.party.active)IB.alertBox('🔥 ГУЛЯНКА: '+IB.G.party.t.toFixed(1)+' / 8 ГОД','al-fun');
+    if(IB.G.party.active)IB.alertBox('🔥 ГУЛЯНКА '+IB.G.party.t.toFixed(1)+'/8 — '+IB.PARTY_PHASES[IB.M.min(IB.G.party.hour,7)].n,'al-fun');
     else if(IB.G.trip.active)IB.alertBox('✦ ТРІП: '+IB.G.trip.t.toFixed(1)+' / 6 ГОД','al-fun');
-    else if(IB.G.search)IB.alertBox('🔎 ШУКАЄМО: '+IB.G.search.lost.join(', ')+' — вони йдуть на голоси','al-warn');
+    else if(IB.G.search)IB.alertBox('🔊 ГУКАЄМО: '+IB.G.search.lost.join(', ')+' — біжать на голоси','al-warn');
     else if(IB.G.hangover>0)IB.alertBox('😵 ПОХМІЛЛЯ (до 12:00) — вода/їжа/розсіл','al-warn');
     else if(IB.G.frozenMate)IB.alertBox('❄ '+IB.G.frozenMate.name+' ЗАМЕРЗАЄ — СИНІЙ МАРКЕР!','al-red');
     else if(IB.G.wx.type==='blizzard')IB.alertBox('❄ ХУРТОВИНА — БУДЬ БІЛЯ ВОГНЮ','al-red');
@@ -4642,7 +5353,8 @@ IB.MAIN=(function(){
   /* ---------- РУХ ЛІДЕРА ---------- */
   function updateLeader(dt){
     const L=IB.E.team[0];
-    if(IB.G.party.active||IB.G.trip.active||IB._sceneOpen||mode!=='game'){L.fr=0;return;}
+    /* v2.3: під час гулянки МОЖНА ХОДИТИ (тріп і сцен-картки чіпляють, як і було) */
+    if(IB.G.trip.active||(IB._sceneOpen&&!IB._sceneNonblock)||mode!=='game'){L.fr=0;return;}
     const mv=moveVec();
     L.running=!!keys.shift;
     const spd=IB.heroSpeed(L)*(mv.x||mv.y?1:0);
@@ -4666,8 +5378,17 @@ IB.MAIN=(function(){
       /* окремі осі */
       if(ok){L.x=nx;L.y=ny;}
       else{
-        if(!inWater&&IB.walkable(nx,L.y)&&IB.M.abs(IB.W.elevAt(nx,L.y)-curH)<=1.01)L.x=nx;
-        else if(!inWater&&IB.walkable(L.x,ny)&&IB.M.abs(IB.W.elevAt(L.x,ny)-curH)<=1.01)L.y=ny;
+        let slid=false;
+        if(!inWater&&IB.walkable(nx,L.y)&&IB.M.abs(IB.W.elevAt(nx,L.y)-curH)<=1.01){L.x=nx;slid=true;}
+        else if(!inWater&&IB.walkable(L.x,ny)&&IB.M.abs(IB.W.elevAt(L.x,ny)-curH)<=1.01){L.y=ny;slid=true;}
+        /* v2.2: ковзання по перешкоді — 6 напрямків навколо курсу (вихід із хащів) */
+        if(!slid&&!inWater&&(mv.x||mv.y)){
+          const base=IB.M.atan2(mv.y,mv.x),st=IB.M.hypot(mv.x,mv.y)*spd*dt;
+          for(const off of [0.5,-0.5,1.0,-1.0,1.6,-1.6]){
+            const ex=L.x+IB.M.cos(base+off)*st,ey=L.y+IB.M.sin(base+off)*st;
+            if(IB.walkable(ex,ey)&&IB.M.abs(IB.W.elevAt(ex,ey)-curH)<=1.01){L.x=ex;L.y=ey;slid=true;break;}
+          }
+        }
       }
       if(inWater&&!L.swim){L.swim=true;IB.SFX.splash();IB.toast('Ти у воді! Виходь на берег, інакше замерзнеш');}
       if(!inWater&&L.swim){L.swim=false;}
@@ -5084,7 +5805,7 @@ IB.MAIN=(function(){
             if(qk==='sheep'){
               /* вівця губиться */
               const a=IB.E.animals.find(a=>a.type==='sheep'&&!a.lost);
-              if(a){a.lost=true;a.dark=true;a.x=n.x+IB.rnd(-20,-8);a.y=n.y+IB.rnd(-14,10);a.pen=null;}
+              if(a){a.lost=true;a.dark=true;const rc=IB.snapToReach?IB.snapToReach(n.x+IB.rnd(-20,-8),n.y+IB.rnd(-14,10)):{x:a.x,y:a.y};a.x=rc.x;a.y=rc.y;a.pen=null;} /* v2.2 */
               IB.banner('ВІВЦЯ ЗАГУБИЛАСЬ ДЕСЬ НА ЛУГАХ (рожева крапка на карті)');
             }
             if(qk==='letter'){IB.G.flags.hasLetter=true;IB.toast('Отримано лист для пані Марічки','gold');}
@@ -5223,11 +5944,11 @@ IB.MAIN=(function(){
         (i>0?['follow','wood','water','fish','farm','cook','rest'].map(tk=>'<div class="prow click" data-task="'+i+'|'+tk+'"><span class="nm">'+(tk==='follow'?'Йти зі мною':(IB.TASKS[tk]?IB.TASKS[tk].label:'Відпочивати'))+'</span><span class="'+(h.task===tk?'ok':'no')+'">'+(h.task===tk?'✔ поточне':'')+'</span></div>').join(''):'')+
         '</div>';
     });
-    html+='<div class="pcard"><b>ГУЛЯНКА (Q):</b><span class="ds"> КОЛИ ЗАВГОДНО (v1.5) — головне: живе вогнище з дровами і вся група поруч. Напитки (≥6) і закуска (≥4) роблять гулянку дужчою — без них буде «суха». Вранці — похмілля до 12:00.</span></div>';
+    html+='<div class="pcard"><b>ГУЛЯНКА (Q):</b><span class="ds"> КОЛИ ЗАВГОДНО (v1.5) — живе вогнище з дровами і вся група поруч. Напитки (≥6) і закуска (≥4) роблять дужчою. ХОДИТИ МОЖНА. 8 фаз на 8 годин: РОЗГІН → ТАНЦІ → БАЙКИ → ГРИБНИЙ ТРІП (психоделічні кольори і глічі) → ПОПАДАЛИ (упали — лежать) → ЖАЛІБНИЙ ТРІП → РОЗГУЛ → ПОХМІЛЛЯ. Музика і світло міняються щогодини, герої танцюють навколо вогню, перегукуються байками і анекдотами, падають і лежать. Вранці — похмілля до 12:00.</span></div>';
     html+='<div class="pcard"><b>⛺ ТАБІР БУДЬ-ДЕ (B):</b><span class="ds"> кнопка ⛺ ТАБІР ставить похідний табір на ЛЮБОМУ рівному місці (не вода/скелі/село): усі поруч → намет стоїть одразу, майданчик розчищено. Вогнище, стіл+казан, колодязь, грядка, сушилка — E біля табору → меню будівництва. Сон у наметі, гулянка, рецепти, тепло і світло вогню — все як у кемпінгах. Табори видно на карті (TAB) жовтими наметами і збережено у сейві.</span></div>';
     html+='<div class="pcard"><b>✦ «5 Г»:</b><span class="ds"> у тебе пакетиків: '+IB.G.inv.trip5+'. Ніч П\'яти Зірок — у темряві, зі всією групою.</span></div>';
     html+='<div class="prow click" data-torch="1"><span class="nm">🔦 ФОНАРИКИ: '+(IB.G.torch!==false?'УВІМКНЕНО (світять уночі, кажани прилітають)':'ВИМКНЕНО (темно, кажани не летять)')+'</span><span class="ds">кнопка ФОНАР / клавіша F</span><span class="'+(IB.G.torch!==false?'ok':'no')+'">'+'перемкнути'+'</span></div>';
-    html+='<div class="prow click" data-srch="1"><span class="nm">🔎 ШУКАТИ ЗАГУБЛЕНИХ</span><span class="ds">група кричить — загублені йдуть на голос</span><span class="ok">R</span></div>';
+    html+='<div class="prow click" data-srch="1"><span class="nm">🔊 ГУКАТИ (зібрати групу)</span><span class="ds">група кричить «АУ!» — загублені біжать на голос швидше, ніж самі дійшли б; пробивають хащі</span><span class="ok">R</span></div>';
     openPanel('ГРУПА — ЛЕГЕНДАРНА П\'ЯТІРКА',html);
     IB.$('panel-body').querySelectorAll('[data-task]').forEach(el=>{
       el.onclick=()=>{
@@ -5471,6 +6192,7 @@ IB.MAIN=(function(){
         IB.eventsTick(dt);IB.fishTick(dt);
         IB.updateBeasts(dt);IB.searchTick(dt); /* v1.5: звірі + пошук */
       }
+      if(IB.G.party.active)IB.updateTeam(dt); /* v2.3: герої танцюють, поки гулянка */
       IB.timeTick(dt);
       IB.survTick(dt);
       if(IB.G.party.active)IB.partyTick(dt);
@@ -5544,7 +6266,7 @@ IB.MAIN=(function(){
 
   function openTravels(){
     const rs=IB.W.ROUTES||[];
-    let h='<div class="pcard"><div class="ds">КУРТОЧНИЙ ВІДДІЛ «КАРПАТИ-ТУР»: реальні маршрути — Чорногора, Ґорґани, Мармароси, кордони і Шацькі озера. На кожній вершині група робить ФІО — полароїди летять у альбом.</div></div>';
+    let h='<div class="pcard"><div class="ds">КУРТОЧНИЙ ВІДДІЛ «КАРПАТИ-ТУР»: реальні маршрути — Чорногора, Ґорґани, Мармароси, кордони і Шацькі озера. На кожній точці — ФОТОСЕРІЯ з 3 кадрів (УСІ РАЗОМ / СТРИБОК! / ПРАПОРЕЦЬ) — у альбом.</div></div>';
     rs.forEach((r,i)=>{
       const c=IB.canTravel(r);
       const st=(IB.G.stamps||{})[r.id];

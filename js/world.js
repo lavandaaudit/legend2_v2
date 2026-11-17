@@ -555,6 +555,155 @@ function carveExtraLakes(elev){
   }
 }
 
+/* ---------- v2.2: ГАРАНТІЯ ПРОХІДНОСТІ — карта без заглушок ---------- */
+function flowBFS(elev,terr){
+  const reach=new Int32Array(W*H).fill(-1);
+  const sx=CAMPS[0].x,sy=CAMPS[0].y;
+  if(!IB.walkable(sx,sy))return reach;
+  const q=new Int32Array(W*H);let qh=0,qt=0;
+  reach[sy*W+sx]=0;q[qt++]=sy*W+sx;
+  while(qh<qt){
+    const i=q[qh++],x=i%W,y=(i/W)|0,e0=elev[i];
+    for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+      if(!dx&&!dy)continue;
+      const ax=x+dx,ay=y+dy;
+      if(ax<1||ay<1||ax>=W-1||ay>=H-1)continue;
+      const j=ay*W+ax;
+      if(reach[j]>=0)continue;
+      if(!IB.walkable(ax,ay))continue;
+      if(IB.M.abs(elev[j]-e0)>1.01)continue;
+      reach[j]=reach[i]+1;q[qt++]=j;
+    }
+  }
+  return reach;
+}
+function flowPois(){
+  const list=[];
+  for(const b of WA.buildings)list.push({x:b.door.x,y:b.door.y,n:'door:'+b.type,kind:'door',rad:2,lim:1.6});
+  for(const c of CAMPS)list.push({x:c.x,y:c.y,n:'camp:'+c.name,kind:'point',rad:1,lim:1.6});
+  list.push({x:MOLFAR.x,y:MOLFAR.y+2,n:'molfar',kind:'point',rad:1,lim:1.6});
+  for(const s of (WA.PHOTO_SPOTS||[]))if(s.x>0)list.push({x:s.x,y:s.y,n:'photo:'+s.id,kind:'photo',rad:4,lim:3.4});
+  for(const a of IB.ARTIFACTS)if(a.world)list.push({x:a.x,y:a.y,n:'art:'+a.id,kind:'point',rad:1,lim:1.6});
+  return list;
+}
+/* чи можна реально підійти до точки: досяжна клітинка в радіусі взаємодії */
+function flowReach(reach,p){
+  for(let dy=-p.rad;dy<=p.rad;dy++)for(let dx=-p.rad;dx<=p.rad;dx++){
+    const x=p.x+dx,y=p.y+dy;
+    if(x<1||y<1||x>=W-1||y>=H-1)continue;
+    const j=y*W+x;
+    if(reach[j]>=0&&IB.walkable(x,y)&&IB.dist(x,y,p.x,p.y)<=p.lim)return true;
+  }
+  return false;
+}
+/* двері — на найближчу проходиму клітинку біля стіни будинку;
+   фото-точки — переносимо в досяжну зону */
+function fixDoorsAndSpots(reach){
+  let fixes=0;
+  for(const b of WA.buildings){
+    const px=b.door.x,py=b.door.y+0.5;
+    let best=null,bd=1e9;
+    for(let y=b.y-7;y<b.y+b.h+7;y++)for(let x=b.x-7;x<b.x+b.w+7;x++){
+      if(x<1||y<1||x>=W-1||y>=H-1)continue;
+      const j=y*W+x;
+      if(!IB.walkable(x,y)||reach[j]<0)continue;
+      const d=IB.dist(x,y,px,py);
+      if(d<bd){bd=d;best={x,y};}
+    }
+    if(best&&bd>1.55){b.door={x:best.x,y:best.y};fixes++;}
+  }
+  for(const s of (WA.PHOTO_SPOTS||[])){
+    if(!(s.x>0))continue;
+    let best=null,bd=1e9;
+    for(let dy=-6;dy<=6;dy++)for(let dx=-6;dx<=6;dx++){
+      const x=s.x+dx,y=s.y+dy;
+      if(x<1||y<1||x>=W-1||y>=H-1)continue;
+      const j=y*W+x;
+      if(!IB.walkable(x,y)||reach[j]<0)continue;
+      const d=dx*dx+dy*dy;
+      if(d<bd){bd=d;best={x,y};}
+    }
+    if(best&&bd>9){s.x=best.x;s.y=best.y;fixes++;}
+  }
+  return fixes;
+}
+function flowCarve(reach,elev,terr,px,py){
+  let bt=-1,bd=1e9;
+  for(let i=0;i<W*H;i++){
+    if(reach[i]<0)continue;
+    const d=IB.dist(i%W,(i/W)|0,px,py);
+    if(d<bd){bd=d;bt=i;}
+  }
+  if(bt<0||bd>60)return false;
+  const tx2=bt%W,ty2=(bt/W)|0;
+  const steps=IB.M.ceil(IB.dist(px,py,tx2,ty2)*2);
+  const carved=[];
+  for(let i=0;i<=steps;i++){
+    const t=i/steps;
+    const x=IB.M.round(IB.lerp(px,tx2,t)),y=IB.M.round(IB.lerp(py,ty2,t));
+    if(x<2||y<2||x>=W-2||y>=H-2)continue;
+    const idx=y*W+x;
+    for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+      const p=WA.propAt(x+dx,y+dy);
+      if(p&&p.type!=='mush'&&p.type!=='triph'&&p.type!=='flower'&&p.type!=='herb'&&p.type!=='bush'){
+        const pi=WA.props.indexOf(p);if(pi>=0)WA.props.splice(pi,1);
+        WA.grid.delete((y+dy)*W+(x+dx));
+      }
+    }
+    if(terr[idx]===0||terr[idx]===9||terr[idx]===10)terr[idx]=7; /* стежка/гребля */
+    carved.push(idx);
+  }
+  /* висоти вздовж стежки: не стрибаємо >1 (два проходи) */
+  for(let pass=0;pass<2;pass++){
+    for(let i=1;i<carved.length;i++){
+      const a=carved[i-1],b=carved[i];
+      if(elev[b]>elev[a]+1)elev[b]=elev[a]+1;
+      if(elev[b]<elev[a]-1)elev[b]=elev[a]-1;
+    }
+    for(let i=carved.length-2;i>=0;i--){
+      const a=carved[i+1],b=carved[i];
+      if(elev[b]>elev[a]+1)elev[b]=elev[a]+1;
+      if(elev[b]<elev[a]-1)elev[b]=elev[a]-1;
+    }
+  }
+  return true;
+}
+function ensureMapFlow(elev,terr){
+  for(let pass=0;pass<4;pass++){
+    const reach=flowBFS(elev,terr);
+    WA.reach=reach;
+    fixDoorsAndSpots(reach);
+    const bad=flowPois().filter(p=>{
+      if(p.x<1||p.y<1||p.x>=W-1||p.y>=H-1)return false;
+      return !flowReach(reach,p);
+    });
+    if(!bad.length){WA.flowOK=true;WA.flowBad=null;return;}
+    WA.flowBad=bad.map(p=>p.n);
+    for(const p of bad)flowCarve(reach,elev,terr,p.x,p.y);
+  }
+  WA.reach=flowBFS(elev,terr);
+}
+IB.snapToReach=(x,y)=>{
+  x=IB.M.round(x);y=IB.M.round(y);
+  const R=WA.reach;
+  if(!R||x<1||y<1||x>=W-1||y>=H-1)return {x:x,y:y};
+  if(R[y*W+x]>=0&&IB.walkable(x,y))return {x:x,y:y};
+  for(let r=1;r<=16;r++){
+    let best=null,bd=1e9;
+    for(let dy=-r;dy<=r;dy++)for(let dx=-r;dx<=r;dx++){
+      if(IB.M.max(IB.M.abs(dx),IB.M.abs(dy))!==r)continue;
+      const ax=x+dx,ay=y+dy;
+      if(ax<1||ay<1||ax>=W-1||ay>=H-1)continue;
+      const j=ay*W+ax;
+      if(R[j]<0||!IB.walkable(ax,ay))continue;
+      const d=dx*dx+dy*dy;
+      if(d<bd){bd=d;best=j;}
+    }
+    if(best!==null)return {x:best%W,y:(best/W)|0};
+  }
+  return {x:x,y:y};
+};
+
 /* ---------- ЗАПУСК ГЕНЕРАЦІЇ ---------- */
 IB.genWorld=function(){
   /* скидання попередньої генерації */
@@ -629,6 +778,7 @@ IB.genWorld=function(){
     }
     if(best){a.x=best.x;a.y=best.y;}
   }
+  ensureMapFlow(elev,terr); /* v2.2: перевірка і полагодження заглушок */
   WA.built=(WA.built||0)+1;
 };
 })();

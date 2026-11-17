@@ -148,17 +148,21 @@ IB.renderWorld=(g,dt)=>{
 
   /* ---------- ніч/вогонь світло ---------- */
   if(nf>0.05){
-    g.fillStyle='rgba(8,14,26,'+(nf*0.55)+')';g.fillRect(0,0,480,336);
+    /* v2.3: мерехтіння ночі на вечірці */
+    const nfF=nf*(IB.G.party.active?(0.93+0.07*IB.M.sin(performance.now()*0.02)):1);
+    g.fillStyle='rgba(8,14,26,'+(nfF*0.55).toFixed(3)+')';g.fillRect(0,0,480,336);
     /* світло вогнів */
     for(const c of W.CAMPS.concat(IB.G.wildCamps||[])){
       const cc=IB.G.camps[c.id];
       if(cc&&cc.fire&&cc.fuel>0){
         const s=tileScreen(c.x,c.y);
         const fx=s.x+ox,fy=s.y+oy-6;
-        const fl=0.75+IB.M.sin(performance.now()*0.01)*0.15;
+        /* v2.3: вогонь пульсує в такт вечірці — світло міняється */
+        const pk=IB.G.party.active?(1.32+IB.M.sin(performance.now()*0.017)*0.16):1;
+        const fl=(0.75+IB.M.sin(performance.now()*0.01)*0.15)*pk;
         const gr=g.createRadialGradient(fx,fy,4,fx,fy,80*fl);
-        gr.addColorStop(0,'rgba(240,180,60,'+(0.5*nf)+')');
-        gr.addColorStop(0.5,'rgba(220,120,40,'+(0.22*nf)+')');
+        gr.addColorStop(0,'rgba(240,180,60,'+IB.M.min(0.85,0.5*nf*pk).toFixed(3)+')');
+        gr.addColorStop(0.5,'rgba(220,120,40,'+IB.M.min(0.5,0.22*nf*pk).toFixed(3)+')');
         gr.addColorStop(1,'rgba(0,0,0,0)');
         g.fillStyle=gr;g.beginPath();g.arc(fx,fy,80*fl,0,7);g.fill();
       }
@@ -244,6 +248,46 @@ IB.renderWorld=(g,dt)=>{
       g.beginPath();g.arc(fx,fy,8,0,7);g.stroke();
       g.fillStyle='rgba(176,106,224,'+pl+')';g.fillRect(fx-2,fy-10,4,4);
     }
+  }
+
+  /* ---------- v2.3: ВЕЧІРКОВІ ГЛІЧІ — п'яні кольори, мерехтіння, зсув смуг ---------- */
+  if(IB.partyFx&&IB.partyFx.lvl>0.02&&IB.G.party.active){
+    const F=IB.partyFx,t=performance.now()*0.001,lvl=F.lvl*(0.85+0.15*IB.M.sin(t*2.2));
+    if(F.mode==='psy'||F.mode==='psy2'){
+      const hue=(t*(F.mode==='psy2'?85:50))%360;
+      g.fillStyle='hsla('+hue.toFixed(0)+',80%,55%,'+(0.10+0.08*lvl).toFixed(3)+')';g.fillRect(0,0,480,336);
+      g.fillStyle='hsla('+((hue+140)%360).toFixed(0)+',85%,60%,'+(0.07*lvl).toFixed(3)+')';g.fillRect(0,0,480,336);
+    }else if(F.mode==='blue'){
+      g.fillStyle='rgba(70,100,170,'+(0.16+0.06*lvl).toFixed(3)+')';g.fillRect(0,0,480,336);
+      g.fillStyle='rgba(24,34,64,'+(0.12*lvl).toFixed(3)+')';g.fillRect(0,0,480,336);
+    }else if(F.mode==='grey'){
+      g.fillStyle='rgba(118,124,130,'+(0.20+0.05*lvl).toFixed(3)+')';g.fillRect(0,0,480,336);
+    }else{
+      g.fillStyle='rgba(255,150,60,'+(0.08*lvl).toFixed(3)+')';g.fillRect(0,0,480,336);
+    }
+    /* мерехтіння */
+    if(IB.M.random()<0.12*lvl){g.fillStyle='rgba(255,242,205,'+(0.05+IB.M.random()*0.10).toFixed(3)+')';g.fillRect(0,0,480,336);}
+    /* гліч-смуги: зсув горизонтальних шматків кадру */
+    if(IB.M.random()<0.14*lvl){
+      const n=1+IB.ri(0,3);
+      for(let i=0;i<n;i++){
+        const sy=IB.ri(0,318),hh=2+IB.ri(0,7),dx=IB.rnd(-12,12);
+        g.drawImage(g.canvas,0,sy,480,hh,dx,sy,480,hh);
+      }
+    }
+    /* подвійний зір на розгулі */
+    if(lvl>0.55){g.globalAlpha=0.12+0.06*(lvl-0.55);g.drawImage(g.canvas,IB.M.sin(t*3.1)*4,IB.M.cos(t*2.3)*2.5);g.globalAlpha=1;}
+    /* CSS-фільтр канваса — GPU, міняється з фазою */
+    const cv=g.canvas;let flt='';
+    if(F.mode==='psy')flt='saturate(1.7) hue-rotate('+(IB.M.sin(t*1.3)*40*lvl).toFixed(0)+'deg)';
+    else if(F.mode==='psy2')flt='saturate(1.9) contrast(1.06) hue-rotate('+(IB.M.sin(t*2.1)*60*lvl).toFixed(0)+'deg)';
+    else if(F.mode==='blue')flt='saturate(0.72) hue-rotate(-12deg) brightness(0.9)';
+    else if(F.mode==='grey')flt='grayscale(0.6) brightness(0.95)';
+    else flt='saturate('+(1+0.3*lvl).toFixed(2)+')';
+    if(cv._pf!==flt){cv.style.filter=flt;cv._pf=flt;}
+  }else{
+    const cv=g.canvas;
+    if(cv._pf){cv.style.filter='';cv._pf='';}
   }
 };
 
@@ -609,7 +653,13 @@ function drawFarm(g,f,ox,oy){
 function drawHero(g,h,ox,oy,dt){
   const s=tileScreen(h.x,h.y);
   const x=s.x+ox+16,y=s.y+oy+10-h.swim*4;
-  IB.drawPerson(g,x,y,h.dir,h.fr,h.look);
+  if(IB.G.party.active&&h.lying>0){
+    /* v2.3: «упав / попадали» — герой лежить біля вогню */
+    g.save();g.translate(x,y-2);g.rotate(h.lieDir||1.35);IB.drawPerson(g,0,0,'d',0,h.look);g.restore();
+  }else{
+    const hop=(IB.G.party.active&&!h.swim)?IB.M.abs(IB.M.sin(performance.now()*0.009+h.x*3.1))*2.2:0;
+    IB.drawPerson(g,x,y-hop,h.dir,h.fr,h.look);
+  }
   /* v1.3: ІМ'Я, ЩО СВІТИТЬСЯ над головою */
   const nc=h.def&&h.def.nameColor?h.def.nameColor:'#f0d050';
   const ny=y-36+IB.M.sin(performance.now()*0.003+h.x*1.7)*1.6;
@@ -638,9 +688,23 @@ function drawHero(g,h,ox,oy,dt){
     IB.P(g,x+6,y-9,3,2,'#2e3440');
     IB.P(g,x+9,y-8.5,1.6,1,'rgba(255,240,180,0.95)');
   }
-  if(IB.G.party.active){
+  if(IB.G.party.active&&h.lying>0){
+    g.font='9px monospace';g.fillText('💤',x+6,y-12);
+  }else if(IB.G.party.active){
     const bob=IB.M.sin(performance.now()*0.006+h.x)*3;
     g.font='11px monospace';g.fillText(['🎵','🎶','💃','🍻'][IB.ri(0,3)],x-7,y-34+bob);
+  }
+  /* v2.3: бульбашки-діалоги над героями */
+  if(h.bubble){
+    const b=h.bubble;g.font='7px monospace';
+    const w=IB.M.min(IB.M.max(g.measureText(b.txt).width+10,26),150);
+    const bx=IB.M.max(3,IB.M.min(480-w-3,x-w/2)),by=IB.M.max(18,y-56);
+    g.globalAlpha=0.93;
+    IB.P(g,bx,by-9,w,12,'#f2efe4');
+    g.strokeStyle=(h.def&&h.def.nameColor)||'#f0d050';g.lineWidth=1;g.strokeRect(bx+0.5,by-8.5,w-1,11);
+    IB.PA(g,[[x-3,by+3.5],[x+3,by+3.5],[x,by+7]],'#f2efe4');
+    g.fillStyle='#22262e';g.textAlign='center';g.fillText(b.txt,bx+w/2,by);g.textAlign='left';
+    g.globalAlpha=1;
   }
 }
 function drawNpc(g,n,ox,oy){
@@ -889,10 +953,11 @@ IB.drawBigMapBase=(canvas)=>{
 
 /* ---------- ТРІП-ФХ ОНОВЛЕННЯ ---------- */
 IB.updateFx=(dt)=>{
-  /* спавн галюцинацій під час тріпу */
-  if(IB.G.trip.active){
+  /* спавн галюцинацій: тріп «5 г» + ГРИБНИЙ ТРІП/РОЗГУЛ на вечірці (v2.3) */
+  const psy=IB.G.trip.active||IB.partyPsy();
+  if(psy){
     const L=IB.E.team[0];
-    if(IB.tripFx.length<26&&IB.M.random()<dt*4){
+    if(IB.tripFx.length<26&&IB.M.random()<dt*(IB.G.trip.active?4:1.8)){
       const kinds={viktor:['ghost','star'],andriy:['food','star'],taras:['note','star'],petro:['line','eye'],maksym:['shadow','star']};
       const kk=kinds[L.id]||['star'];
       const a=IB.rnd(0,6.28),r=IB.rnd(3,12);
@@ -907,7 +972,7 @@ IB.updateFx=(dt)=>{
     fx.a=IB.M.min(1,fx.life-fx.t);
     if(fx.t>=fx.life)IB.tripFx.splice(i,1);
   }
-  if(!IB.G.trip.active&&IB.tripFx.length)IB.tripFx.length=IB.M.max(0,IB.tripFx.length-1);
+  if(!psy&&IB.tripFx.length)IB.tripFx.length=IB.M.max(0,IB.tripFx.length-1);
 };
 
 
@@ -950,6 +1015,12 @@ function drawCar(g,c,ox,oy,dt){
 }
 
 /* ==================== v1.2: СХОДЖЕННЯ (мандрівка) ==================== */
+/* ==================== v2.4 «ФІНАЛ»: СХОДЖЕННЯ — ІЗОМЕТРІЯ ====================
+   Гора-піраміда з терасами (ліс смерек → полонина → скелі → сніжники),
+   звивиста стежка-серпантин, вся група ЙДЕ по ній (анімація кроків) і
+   штурмує вершину; хмари у ТРИ ШАРИ (за вершинами, море хмар під вершиною,
+   перед камерою); ізо-вершини сусіди; прапорець+тур / озеро / стела на
+   фініші; експедиція — ізо-траса з ваном, стовпами і пилом. */
 IB.ASC_STAGES={
   peak:['ПІДНІЖЖЯ — СТАРА СТЕЖКА','ГРАВІЙ І СМЕРЕКИ','ПОЛОНИНА — ВІТЕР З ХРЕБТА','СКЕЛЬНІ ВИХОДИ','СНІЖНИК — ОСТАННІЙ РИВОК','ВЕРШИНА'],
   lake:['ПІДНІЖЖЯ','ЯЛИНОВИЙ ЛІС','ПОЛОНИНА','БЕРЕГ ОЗЕРА'],
@@ -957,53 +1028,207 @@ IB.ASC_STAGES={
   expedition:['ЗАВАНТАЖЕННЯ В БІЛИЙ ВАН','ВОЛИНСЬКА ТРАСА','ЗАЛІСІННЯ','ПЛЯЖ СВІТЯЗЯ'],
 };
 IB.TRAVEL_CUR=null;
+/* звивиста стежка схилом — група йде по ній у ланцюжку */
+IB._ascTrail=[[288,268],[196,256],[296,244],[204,232],[282,218],[208,204],[270,190],[214,176],[256,162],[222,148],[250,134],[232,120],[246,106],[240,98]];
+IB._ascTrailTot=(()=>{
+  let t=0;
+  for(let i=1;i<IB._ascTrail.length;i++)
+    t+=IB.dist(IB._ascTrail[i-1][0],IB._ascTrail[i-1][1],IB._ascTrail[i][0],IB._ascTrail[i][1]);
+  return t;
+})();
+IB._ascPos=(s)=>{
+  s=IB.clamp(s,0,1);
+  const d=s*IB._ascTrailTot;let acc=0;
+  for(let i=1;i<IB._ascTrail.length;i++){
+    const a=IB._ascTrail[i-1],b=IB._ascTrail[i];
+    const seg=IB.dist(a[0],a[1],b[0],b[1]);
+    if(acc+seg>=d){
+      const t2=IB.clamp((d-acc)/IB.M.max(1,seg),0,1),dx=b[0]-a[0];
+      return {x:IB.lerp(a[0],b[0],t2),y:IB.lerp(a[1],b[1],t2),
+        dir:dx>6?'r':(dx<-6?'l':(b[1]<a[1]?'u':'d'))};
+    }
+    acc+=seg;
+  }
+  const e=IB._ascTrail[IB._ascTrail.length-1];
+  return {x:e[0],y:e[1],dir:'u'};
+};
+IB._ascCloud=(g,x,y,sc,al)=>{
+  g.fillStyle='rgba(240,246,252,'+al+')';
+  g.beginPath();g.ellipse(x,y,26*sc,9*sc,0,0,7);g.fill();
+  g.beginPath();g.ellipse(x+15*sc,y-6*sc,17*sc,8*sc,0,0,7);g.fill();
+  g.beginPath();g.ellipse(x-17*sc,y-4*sc,14*sc,7*sc,0,0,7);g.fill();
+  g.beginPath();g.ellipse(x-2*sc,y-10*sc,12*sc,6*sc,0,0,7);g.fill();
+};
+IB._ascPine=(g,x,y,sc,c)=>{
+  IB.P(g,x-1.5*sc,y-8*sc,3*sc,9*sc,'#3a2c18');
+  IB.PA(g,[[x,y-20*sc],[x-6*sc,y-7*sc],[x+6*sc,y-7*sc]],c||'#1e4228');
+  IB.PA(g,[[x,y-26*sc],[x-4.5*sc,y-13*sc],[x+4.5*sc,y-13*sc]],c||'#265232');
+};
+/* далека ізо-вершина зі сніжною шапкою */
+IB._bgPeak=(g,ax,ay,bw,hgt,c1,c2)=>{
+  IB.PA(g,[[ax,ay],[ax-bw,ay+hgt],[ax,ay+hgt]],c1);
+  IB.PA(g,[[ax,ay],[ax,ay+hgt],[ax+bw,ay+hgt]],c2);
+  IB.PA(g,[[ax,ay],[ax-bw*0.26,ay+hgt*0.26],[ax,ay+hgt*0.26]],'#e8f0f4');
+  IB.PA(g,[[ax,ay],[ax,ay+hgt*0.26],[ax+bw*0.26,ay+hgt*0.26]],'#f0f6f8');
+};
+/* ГОРА — піраміда з терасами за висотою: сніг / скелі / полонина / ліс */
+IB._ascMtn=(g,ax,ay,bw,hgt)=>{
+  const bands=[[0,0.22,'#eef4f8','#dce8f0'],[0.22,0.42,'#88928c','#58605a'],
+               [0.42,0.62,'#6a8448','#4c6232'],[0.62,1.02,'#2e5230','#1e4228']];
+  for(const b of bands){
+    const y1=ay+hgt*b[0],y2=ay+hgt*b[1];
+    IB.PA(g,[[ax-bw*b[0],y1],[ax,y1],[ax,y2],[ax-bw*b[1],y2]],b[2]);
+    IB.PA(g,[[ax,y1],[ax+bw*b[0],y1],[ax+bw*b[1],y2],[ax,y2]],b[3]);
+  }
+  /* піедмонт — темне лісове підніжжя (третя грань) */
+  IB.PA(g,[[ax-bw,ay+hgt],[ax,ay+hgt+hgt*0.32],[ax+bw,ay+hgt]],'#16281a');
+  /* фактура: сніг блищить, осип — каміння, полонина — квіти, ліс — хвоїнки */
+  for(let i=0;i<110;i++){
+    const t=0.03+IB.hsh(i,1,950)*0.97,y=ay+t*hgt;
+    const side=IB.hsh(i,2,951)<0.5?-1:1;
+    const lim=IB.M.max(8,bw*IB.M.min(t,1)-10);
+    const x=ax+side*(6+IB.hsh(i,3,952)*lim);
+    let c;
+    if(t<0.22)c=IB.hsh(i,4,953)<0.5?'#ffffff':'#c8d8e4';
+    else if(t<0.42)c=IB.hsh(i,4,953)<0.5?'#4e5a54':'#7a847e';
+    else if(t<0.62)c=['#f0d050','#e86a8a','#9a70d0','#7e9454'][i&3];
+    else c=IB.hsh(i,4,953)<0.6?'#16321e':'#3a5a30';
+    g.fillStyle=c;g.fillRect(x|0,y|0,1.6,1.6);
+  }
+};
 IB.drawAscent=(g,dt)=>{
   const C=IB.TRAVEL_CUR;if(!C)return;
   const r=C.route;
   const stages=IB.ASC_STAGES[r.kind]||IB.ASC_STAGES.peak;
   const st=IB.M.min(stages.length-1,IB.M.floor(C.prog/100*stages.length));
-  const wx=IB.G.wx.type,nf=IB.nightFactor();
-  /* небо за висотою */
-  const hh=IB.M.floor(168+ (C.prog/100)*90);
+  const wx=IB.G.wx.type,nf=IB.nightFactor(),gh=IB.goldenHour();
+  const T=performance.now()*0.001;
+  /* ---------- НЕБО ---------- */
   const sky=g.createLinearGradient(0,0,0,336);
-  sky.addColorStop(0,nf>0.5?'#0a1226':(r.kind==='expedition'?'#7ab2d8':'#28598c'));
-  sky.addColorStop(1,nf>0.5?'#101830':'#a8c4d8');
+  if(nf>0.5){sky.addColorStop(0,'#0a1226');sky.addColorStop(1,'#182338');}
+  else if(wx==='sun'){sky.addColorStop(0,'#28598c');sky.addColorStop(1,gh>0.4?'#e8c8a0':'#a8c4d8');}
+  else if(wx==='snow'||wx==='blizzard'){sky.addColorStop(0,'#8aa4b8');sky.addColorStop(1,'#d8e4ee');}
+  else if(wx==='rain'||wx==='storm'){sky.addColorStop(0,'#3a4452');sky.addColorStop(1,'#7a8a98');}
+  else {sky.addColorStop(0,'#5a7a94');sky.addColorStop(1,'#b8c8d4');}
   g.fillStyle=sky;g.fillRect(0,0,480,336);
-  /* сонце/місяць */
-  g.fillStyle=nf>0.5?'#e8e8d8':'#f8e8a0';
-  g.beginPath();g.arc(400,60-(r.kind==='expedition'?0:20),12,0,7);g.fill();
-  /* хребти — рухаються вниз з висотою */
-  const shift=C.prog*1.6;
-  const rcols=nf>0.5?['#0e1a2a','#122236','#182e48']:['#2a4a5c','#3a6a74','#4a8a8c'];
+  if(nf>0.5)for(let i=0;i<42;i++){
+    const sx=IB.hsh(i,1,940)*480,sy=IB.hsh(i,2,941)*150;
+    g.fillStyle='rgba(215,228,255,'+(0.35+0.45*IB.hsh(i,3,942))*(0.55+0.45*IB.M.sin(T*2+i))+')';
+    g.fillRect(sx,sy,1.4,1.4);
+  }
+  /* сонце / місяць */
+  g.fillStyle=nf>0.5?'#e8e8d8':(gh>0.4?'#f8c070':'#f8e8a0');
+  g.beginPath();g.arc(398,62,11,0,7);g.fill();
+  if(nf<=0.5){g.fillStyle='rgba(248,232,160,0.16)';g.beginPath();g.arc(398,62,20,0,7);g.fill();}
+  /* птахи у небі */
+  g.strokeStyle='rgba(30,40,50,0.5)';g.lineWidth=1.3;
   for(let i=0;i<3;i++){
-    g.fillStyle=rcols[i];
-    g.beginPath();g.moveTo(0,336);
-    for(let x=0;x<=480;x+=16){
-      const p=IB.hsh(i*100+(x/16|0),3,900+i);
-      g.lineTo(x,110+i*46+shift*(0.6+i*0.35)-p*44);
+    const bx=(T*24+i*150)%540-30,by=66+i*20+IB.M.sin(T*1.6+i*2)*5;
+    const w2=IB.M.sin(T*7+i*2)*2.5;
+    g.beginPath();g.moveTo(bx-4,by+w2);g.lineTo(bx,by);g.lineTo(bx+4,by+w2);g.stroke();
+  }
+  if(r.kind==='expedition'){IB._ascExpedition(g,C,st,T,nf);}
+  else{
+    /* ---------- ХМАРИ ЗА ВЕРШИНАМИ ---------- */
+    for(let i=0;i<4;i++){
+      const cx=((i*150+T*9)%620)-70,cy=96+IB.hsh(i,4,943)*58;
+      IB._ascCloud(g,cx,cy,0.8+i*0.15,0.75);
     }
-    g.lineTo(480,336);g.fill();
+    /* ---------- ІЗО-ВЕРШИНИ-СУСІДИ ---------- */
+    const pc1=nf>0.5?'#16283e':'#3a5a6c',pc2=nf>0.5?'#1e3450':'#4a7280';
+    IB._bgPeak(g,60,196,56,52,pc1,pc2);
+    IB._bgPeak(g,428,186,52,58,pc1,pc2);
+    IB._bgPeak(g,118,224,34,28,pc1,pc2);
+    /* ---------- ГОРА ---------- */
+    IB._ascMtn(g,240,88,174,152);
+    /* смереки підніжжям (за стежкою) */
+    for(let i=0;i<11;i++){
+      const px=74+i*34+IB.hsh(i,5,944)*16,py=252+IB.hsh(i,6,945)*30;
+      if(IB.dist(px,py,288,268)>26)IB._ascPine(g,px,py,0.9+IB.hsh(i,7,946)*0.7);
+    }
+    /* ---------- МОРЕ ХМАР ПІД ВЕРШИНОЮ (з ~62% підйому) ---------- */
+    if(C.prog>62){
+      for(let i=0;i<12;i++){
+        const cx=((i*46+T*11)%640)-80;
+        g.fillStyle='rgba(236,244,250,0.55)';
+        g.beginPath();g.ellipse(cx,160+IB.M.sin(i*1.7)*8,40,9,0,0,7);g.fill();
+        g.beginPath();g.ellipse(cx+20,152+IB.M.sin(i*1.3)*6,24,7,0,0,7);g.fill();
+      }
+    }
+    /* ---------- СТЕЖКА-СЕРПАНТИН ---------- */
+    g.lineCap='round';g.lineJoin='round';
+    g.beginPath();g.moveTo(IB._ascTrail[0][0],IB._ascTrail[0][1]);
+    for(let i=1;i<IB._ascTrail.length;i++)g.lineTo(IB._ascTrail[i][0],IB._ascTrail[i][1]);
+    g.globalAlpha=0.9;
+    g.strokeStyle='#241a10';g.lineWidth=7;g.stroke();
+    g.strokeStyle='#8a6a42';g.lineWidth=4;g.stroke();
+    g.setLineDash([4,8]);g.strokeStyle='#a87848';g.lineWidth=1.6;g.stroke();g.setLineDash([]);
+    g.globalAlpha=1;
+    /* ---------- ФІНІШ СТЕЖКИ: ПРАПОРЕЦЬ+ТУР / ОЗЕРО / СТЕЛА ---------- */
+    if(r.kind==='lake'){
+      g.fillStyle='#28565f';g.beginPath();g.ellipse(240,90,46,13,0,0,7);g.fill();
+      g.fillStyle='#3a6c74';g.beginPath();g.ellipse(240,88,34,8,0,0,7);g.fill();
+      g.fillStyle='rgba(170,225,240,0.6)';g.fillRect(216,86,14,1.5);g.fillRect(240,90,18,1.5);
+      for(let i=0;i<7;i++){const a=i/7*6.28;
+        g.fillStyle='#58605a';g.beginPath();g.ellipse(240+IB.M.cos(a)*48,90+IB.M.sin(a)*13,4,2.4,0,0,7);g.fill();}
+    }else if(r.kind==='border'){
+      IB.isoBox(g,228,84,26,12,5,'#88928c','#58605a','#6e7872');
+      IB.P(g,234,58,12,30,'#e8e8e2');
+      IB.P(g,234,58,12,5,'#b82840');IB.P(g,234,74,12,6,'#2a3e5c');
+    }else{
+      IB.isoBox(g,233,96,14,7,4,'#58605a','#4e5a54','#6e7872'); /* тур з каміння */
+      IB.P(g,239,80,2,17,'#5e4628');
+    }
+    /* ---------- ГРУПА ЙДЕ І ШТУРМУЄ (анімація кроків, ланцюжок) ---------- */
+    if(C.bubT===undefined){C.bubT=2.5;C.bub=null;}
+    C.bubT-=dt;
+    if(C.bubT<=0){
+      C.bubT=3.5+IB.rnd(0,3);
+      const L=['Далі, хлопці!','Ой, вітєр!','Гора кличе!','Красота!','Смалина б тут…','Тричі «гей»!','Ще ривок!','Дихай, дихай…'];
+      C.bub={i:IB.ri(0,4),t:2.4,txt:L[IB.ri(0,L.length-1)]};
+    }
+    if(C.bub){C.bub.t-=dt;if(C.bub.t<=0)C.bub=null;}
+    const mem=[];
+    for(let i=0;i<5;i++){
+      const s=C.prog/100-i*0.05;
+      mem.push({i:i,p:IB._ascPos(s)});
+    }
+    mem.sort((a,b)=>a.p.y-b.p.y);
+    for(const m of mem){
+      const h=IB.E.team[m.i];if(!h)continue;
+      const fr=1+(IB.M.floor(T*6+m.i*0.8)&1);
+      const sc=IB.lerp(0.68,0.95,IB.clamp((m.p.y-98)/180,0,1));
+      IB.drawPerson(g,m.p.x,m.p.y,m.p.dir,fr,h.look,sc);
+      if(C.bub&&C.bub.i===m.i){
+        g.font='7px monospace';
+        const w=C.bub.txt.length*4.4+10;
+        g.fillStyle='rgba(250,248,238,0.94)';g.fillRect(m.p.x-w/2,m.p.y-30*sc-9,w,11);
+        g.fillStyle='#241a10';g.fillText(C.bub.txt,m.p.x-w/2+5,m.p.y-30*sc);
+      }
+    }
+    /* прапорець махає з вершини */
+    if(r.kind==='peak'){
+      const fw=IB.M.sin(T*3)*2.5;
+      IB.PA(g,[[241,80],[251+fw,83],[241,87]],'#c83828');
+    }
+    /* пориви вітру на полонині (етап 3+) */
+    if(st>=2&&nf<=0.5){
+      g.strokeStyle='rgba(255,255,255,0.28)';g.lineWidth=1.4;
+      for(let i=0;i<3;i++){
+        const wy=186+i*9,wx2=((T*(46+i*14)+i*260)%600)-60;
+        g.beginPath();g.moveTo(wx2,wy);g.quadraticCurveTo(wx2+30,wy-4,wx2+64,wy);g.stroke();
+      }
+    }
+    /* ambient-сніжок на сніжниках (етап 5+) */
+    if(r.kind==='peak'&&st>=4){
+      g.fillStyle='rgba(240,248,255,0.8)';
+      for(let i=0;i<26;i++){
+        const xx=(IB.hsh(i,1,922)*480+T*14)%480,yy=(IB.hsh(i,2,923)*336+T*26)%336;
+        g.fillRect(xx,yy,1.6,1.6);
+      }
+    }
   }
-  /* сніжники на верхніх стадіях */
-  if(st>=4){g.fillStyle='rgba(240,248,255,0.75)';g.fillRect(0,336-(st-3)*26,480,(st-3)*26);}
-  /* стежка вгору */
-  g.strokeStyle='rgba(230,215,180,0.5)';g.lineWidth=4;
-  g.beginPath();g.moveTo(60,336);g.quadraticCurveTo(240,240-C.prog*0.6,420,120-C.prog*0.4);g.stroke();
-  /* група — лінією по стежці (v1.3: більші постаті, ширший лад) */
-  const teamT=Math.sin(performance.now()*0.004)*4;
-  for(let i=0;i<5;i++){
-    const tx=64+i*42,ty=312-i*30-teamT*0.3+IB.hsh(i,4,910)*8;
-    const h=IB.E.team[i];
-    const px=IB.lerp(tx,tx+32,C.prog/140),py=IB.lerp(ty,ty-48,C.prog/140);
-    IB.drawPerson(g,px,py,i%2?'r':'d',0,h.look);
-  }
-  /* експедиція: авто на стадії 0-2 */
-  if(r.kind==='expedition'&&st<3){
-    g.fillStyle='#e8e8e2';g.fillRect(150,250-st*20,64,20);
-    g.fillStyle='#2a3e5c';g.fillRect(158,244-st*20,44,8);
-    g.fillStyle='#1a1a1a';g.fillRect(156,268-st*20,12,6);g.fillRect(196,268-st*20,12,6);
-  }
-  /* погода-частинки прості */
+  /* ---------- погода-частинки ---------- */
   if(wx==='rain'||wx==='hail'){g.strokeStyle='rgba(160,200,230,0.5)';g.beginPath();
     for(let i=0;i<40;i++){const xx=IB.hsh(i,1,920)*480,yy=(IB.hsh(i,2,921)*336+performance.now()*0.25*(wx==='hail'?1.6:1))%336;
       g.moveTo(xx,yy);g.lineTo(xx-2,yy+8);}g.stroke();}
@@ -1011,7 +1236,13 @@ IB.drawAscent=(g,dt)=>{
     for(let i=0;i<60;i++){const xx=(IB.hsh(i,1,922)*480+performance.now()*0.02)%480,yy=(IB.hsh(i,2,923)*336+performance.now()*0.05)%336;
       g.fillRect(xx,yy,2,2);}}
   if(wx==='fog'){g.fillStyle='rgba(180,195,210,0.35)';g.fillRect(0,0,480,336);}
-  /* темрява */
+  /* ---------- ХМАРИ ПЕРЕД КАМЕРОЮ (паралакс) ---------- */
+  for(let i=0;i<4;i++){
+    const cx=((i*170+T*17)%640)-80,cy=246+IB.hsh(i,8,947)*44;
+    IB._ascCloud(g,cx,cy,1.25,0.42);
+  }
+  /* золота година + темрява */
+  if(gh>0.2&&nf<0.5){g.fillStyle='rgba(248,180,90,'+(gh*0.13)+')';g.fillRect(0,0,480,336);}
   if(nf>0.1){g.fillStyle='rgba(10,16,30,'+(nf*0.45)+')';g.fillRect(0,0,480,336);}
   /* ---------- HUD СХОДЖЕННЯ ---------- */
   g.fillStyle='rgba(6,12,10,0.78)';g.fillRect(6,6,468,34);
@@ -1027,7 +1258,7 @@ IB.drawAscent=(g,dt)=>{
   g.fillStyle='#5cb878';g.fillRect(6,64,468*C.prog/100,10);
   g.font='7px monospace';g.fillStyle='#e8f0e8';
   g.fillText('ВИСОТА: '+IB.M.round((r.alt||600)*C.prog/100+((r.alt||600)>800?380:120))+' М',12,72);
-  /* статус групи компактно (v1.3 — нові імена + кольори) */
+  /* статус групи компактно */
   g.font='7px monospace';
   let sx=12;
   for(const h of IB.E.team){
@@ -1039,8 +1270,58 @@ IB.drawAscent=(g,dt)=>{
   g.font='9px monospace';g.fillStyle='#f0d050';
   g.fillText('E / КЛІК — КРОК УГОРУ • ESC — НАЗАД',130,320);
 };
+/* експедиція: ізо-траса, ван трясеться, стовпи, пил, пляж Світязя */
+IB._ascExpedition=(g,C,st,T,nf)=>{
+  /* земля: поля → залісіння → пісок і море */
+  if(st>=3){
+    g.fillStyle=nf>0.5?'#2a2418':'#c8b888';g.fillRect(0,150,480,186);
+    g.fillStyle='#28565f';g.fillRect(0,296,480,40);
+    g.fillStyle='rgba(170,225,240,0.5)';
+    for(let i=0;i<8;i++)g.fillRect((i*61+T*12)%480,302+i%4*8,16,1.5);
+    for(let i=0;i<6;i++)IB._ascPine(g,24+i*86,158+IB.hsh(i,5,962)*12,0.8+IB.hsh(i,6,963)*0.5,'#1e4228');
+  }else{
+    g.fillStyle=nf>0.5?'#16281a':(st>=2?'#2e5230':'#3a5a30');g.fillRect(0,150,480,186);
+    for(let i=0;i<(st>=2?14:9);i++){
+      const px=14+i*36+IB.hsh(i,5,960)*14,py=158+IB.hsh(i,6,961)*26;
+      IB._ascPine(g,px,py,0.8+IB.hsh(i,7,961)*0.7);
+    }
+  }
+  /* ізо-траса */
+  IB.PA(g,[[0,224],[480,212],[480,252],[0,264]],'#5e4a30');
+  IB.PA(g,[[0,230],[480,218],[480,226],[0,238]],'#6e5a3a');
+  g.strokeStyle='#c8b888';g.lineWidth=2;g.setLineDash([10,12]);
+  g.beginPath();g.moveTo(0,250);g.lineTo(480,238);g.stroke();g.setLineDash([]);
+  /* стовпи з провісами */
+  g.strokeStyle='#3a2c18';g.lineWidth=2;
+  for(let i=0;i<6;i++){
+    const px=44+i*88,py=196+IB.hsh(i,9,964)*4;
+    IB.P(g,px-1,py-26,2,26,'#3a2c18');IB.P(g,px-6,py-24,12,2,'#3a2c18');
+  }
+  g.strokeStyle='rgba(40,40,40,0.4)';g.lineWidth=1;g.beginPath();
+  for(let i=0;i<5;i++){
+    const x1=44+i*88,x2=44+(i+1)*88,y1=172+IB.hsh(i,9,964)*4,y2=172+IB.hsh(i+1,9,964)*4;
+    g.moveTo(x1,y1);g.quadraticCurveTo((x1+x2)/2,IB.M.min(y1,y2)-12,x2,y2);
+  }
+  g.stroke();
+  /* БІЛИЙ ВАН — трясеться на волинських вибоїнах */
+  const vx=IB.lerp(24,418,C.prog/100),bob=IB.M.sin(T*11)*1.3,vy=198+bob;
+  IB.isoBox(g,vx,vy,56,24,14,'#eceae2','#b8b8b0','#d0cec6');
+  IB.P(g,vx+6,vy+16,44,10,'#c8c4ba');
+  IB.P(g,vx+8,vy+17,11,7,'#2a3e5c');IB.P(g,vx+23,vy+17,10,7,'#8ac4d8');IB.P(g,vx+36,vy+17,10,7,'#8ac4d8');
+  IB.P(g,vx+9,vy+35,11,6,'#1a1a1a');IB.P(g,vx+36,vy+35,11,6,'#1a1a1a');
+  /* пил з-під коліс */
+  for(let i=0;i<3;i++){
+    g.fillStyle='rgba(180,160,120,'+(0.3-i*0.09)+')';
+    g.beginPath();g.ellipse(vx-12-i*13,236-i*4,7-i*2,4-i,0,0,7);g.fill();
+  }
+  /* бризки на пляжі */
+  if(st>=3)for(let i=0;i<4;i++){
+    g.fillStyle='rgba(220,245,250,0.5)';
+    g.beginPath();g.ellipse(60+i*120,298+IB.M.sin(T*4+i)*3,5,2,0,0,7);g.fill();
+  }
+};
 
-/* ==================== v1.2: ІНТЕР'ЄРИ ==================== */
+/* ==================== v1.2: ІНТЕР'ЄРИ ==================== *//* ==================== v1.2: ІНТЕР'ЄРИ ==================== */
 IB.INT_CUR=null;
 IB.INT_DEFS={
   house:{w:11,h:7,title:'ХАТА',owner:'ГОСПОДАР',
@@ -1150,35 +1431,62 @@ IB.drawInterior=(g,dt)=>{
 };
 
 /* ==================== v1.2: ФОТО-ПОЛАРОЇДИ ==================== */
+/* ==================== v2.4 «ФІНАЛ»: ФОТО-ПОЛАРОЇДИ — СЕРІЇ З 3 КАДРІВ ====================
+   Кожен спуск затвора — три полароїди з різними позами групи:
+   КАДР 1 «УСІ РАЗОМ», КАДР 2 «СТРИБОК!» (іскри), КАДР 3 «ПРАПОРЕЦЬ»
+   (Легінь тримає прапор, теплий фільтр). У кадрі — ізо-піраміда вершини
+   зі сніжною шапкою і прапорцем, хмари, птахи, смереки по кутах,
+   передній план, віньєтка, зерно плівки і помаранчевий штамп часу. */
+IB.PHOTO_VARS=['УСІ РАЗОМ','СТРИБОК!','ПРАПОРЕЦЬ'];
 IB.renderPhoto=(g,entry,X,Y,W,H,small)=>{
-  const P=IB.PAL,seed=entry.seed||1;
+  const seed=entry.seed||1;
   /* рамка полароїда */
-  g.fillStyle='#ece8e0';g.fillRect(X-3,Y-3,W+6,H+6+ (small?0:14));
-  /* небо за погодою */
+  g.fillStyle='#f4f0e6';g.fillRect(X-3,Y-3,W+6,H+6+(small?0:14));
   const wx=entry.wx||'sun';
+  /* небо за погодою */
   const sky=g.createLinearGradient(0,Y,0,Y+H);
   if(wx==='sun'){sky.addColorStop(0,'#28598c');sky.addColorStop(1,'#a8c4d8');}
   else if(wx==='snow'||wx==='blizzard'){sky.addColorStop(0,'#8aa4b8');sky.addColorStop(1,'#d8e4ee');}
   else if(wx==='rain'){sky.addColorStop(0,'#4a5866');sky.addColorStop(1,'#8a9aa8');}
   else {sky.addColorStop(0,'#5a6a7c');sky.addColorStop(1,'#b8c4cc');}
   g.fillStyle=sky;g.fillRect(X,Y,W,H);
-  if(wx==='sun'){g.fillStyle='#f8e8a0';g.beginPath();g.arc(X+W-14,Y+10,7,0,7);g.fill();}
+  /* сонце з ореолом */
+  if(wx==='sun'){
+    g.fillStyle='rgba(248,232,160,0.25)';g.beginPath();g.arc(X+W-14,Y+11,11,0,7);g.fill();
+    g.fillStyle='#f8e8a0';g.beginPath();g.arc(X+W-14,Y+11,6,0,7);g.fill();
+  }
+  /* хмари у кадрі */
+  for(let i=0;i<(small?3:4);i++){
+    const cx=X+W*0.1+IB.hsh(i,seed,710)*W*0.78,cy=Y+H*(0.12+IB.hsh(i,1,711)*0.2);
+    g.fillStyle='rgba(240,246,252,0.72)';
+    g.beginPath();g.ellipse(cx,cy,W*0.15,H*0.05,0,0,7);g.fill();
+    g.beginPath();g.ellipse(cx+W*0.1,cy-H*0.03,W*0.09,H*0.04,0,0,7);g.fill();
+  }
+  /* птахи */
+  g.strokeStyle='rgba(30,40,50,0.5)';g.lineWidth=1;
+  for(let i=0;i<2;i++){
+    const bx=X+W*(0.18+i*0.3),by=Y+H*(0.18+IB.hsh(i,seed,712)*0.15);
+    g.beginPath();g.moveTo(bx-3,by);g.lineTo(bx,by-2);g.lineTo(bx+3,by);g.stroke();
+  }
   /* хребти за seed */
   for(let i=0;i<3;i++){
-    g.fillStyle=['#2a4a5c','#3a6a74','#4e7a5c'][i];
+    g.fillStyle=['#31506b','#3f6a72','#547c60'][i];
     g.beginPath();g.moveTo(X,Y+H);
     for(let px=0;px<=W;px+=8){
       const v=IB.hsh(seed*100+(px/8|0),i,700+i);
-      g.lineTo(X+px,Y+H*0.45+i*H*0.16-v*H*0.24);
+      g.lineTo(X+px,Y+H*0.42+i*H*0.17-v*H*0.22);
     }
     g.lineTo(X+W,Y+H);g.fill();
   }
+  /* сюжети за типом точки */
   if(entry.kind==='peak'){
-    /* вершина з прапорцем */
-    const pkx=X+W/2,pky=Y+H*0.42-(IB.hsh(seed,9,702)*6);
-    g.fillStyle='#e8eef2';IB.PA(g,[[pkx-16,Y+H*0.8],[pkx,pky],[pkx+16,Y+H*0.8]],'#e8eef2');
-    IB.P(g,pkx-1,pky-8,2,10,'#3a3a3a');
-    IB.PA(g,[[pkx+1,pky-8],[pkx+9,pky-5],[pkx+1,pky-2]],'#c83828');
+    /* ізо-піраміда вершини зі сніжною шапкою і прапорцем */
+    const pkx=X+W*0.5,pky=Y+H*0.28;
+    IB.PA(g,[[pkx-22,Y+H*0.72],[pkx,pky],[pkx+22,Y+H*0.72]],'#88928c');
+    IB.PA(g,[[pkx-22,Y+H*0.72],[pkx,pky],[pkx,Y+H*0.72]],'#6e7872');
+    IB.PA(g,[[pkx,pky],[pkx-8,pky+10],[pkx+8,pky+10]],'#f0f6f8');
+    IB.P(g,pkx-1,pky-9,2,11,'#3a3a3a');
+    IB.PA(g,[[pkx+1,pky-9],[pkx+11,pky-6],[pkx+1,pky-3]],'#c83828');
   }else if(entry.kind==='lake'||entry.kind==='shatsk'){
     g.fillStyle='#28565f';g.fillRect(X,Y+H*0.62,W,H*0.38);
     g.fillStyle='rgba(160,220,235,0.4)';
@@ -1195,21 +1503,73 @@ IB.renderPhoto=(g,entry,X,Y,W,H,small)=>{
     IB.isoBox(g,X+W/2-18,Y+H*0.5,36,16,8,'#5e6a62','#4e5a54','#6e7872');
     IB.P(g,X+W/2-12,Y+H*0.5-8,6,8,'#5e6a62');
   }
-  /* група — 5 постатей (справжні кольори героїв) */
-  for(let i=0;i<5;i++){
-    const px=X+W*0.5-26+i*13,py=Y+H*0.82;
-    const look=IB.HERO_DEFS[i]?IB.HERO_DEFS[i].look:null;
-    IB.drawPerson(g,px,py,'d',0,look||{skin:'#e0a878',hair:'#241a10',jacket:'#5a6a3a',pants:'#3a4030'},small?0.62:0.82);
+  /* смереки по кутах кадру */
+  const pnc=small?'#16321e':'#1e4228';
+  for(let i=0;i<3;i++){
+    const by=Y+H-1;
+    IB.PA(g,[[X+6+i*7,by-10],[X+3+i*7,by],[X+9+i*7,by]],pnc);
+    IB.PA(g,[[X+W-6-i*7,by-12],[X+W-9.5-i*7,by],[X+W-2.5-i*7,by]],pnc);
   }
+  /* передній план — сніг або трава з квітами */
+  g.fillStyle=entry.kind==='peak'?'#dce8f0':'#2e5230';
+  g.fillRect(X,Y+H-5,W,5);
+  g.fillStyle=entry.kind==='peak'?'#f0f6f8':'#3a5a30';
+  g.fillRect(X,Y+H-4,W,3);
+  for(let i=0;i<8;i++){
+    g.fillStyle=entry.kind==='peak'?'#c8d8e4':['#f0d050','#e86a8a','#9a70d0'][i%3];
+    g.fillRect(X+4+IB.hsh(i,seed,713)*(W-8),Y+H-4.5,1.5,1.5);
+  }
+  /* ГРУПА — 5 постатей, пози залежать від кадру */
+  const vr=entry.var||0;
+  for(let i=0;i<5;i++){
+    const px=X+W*0.5+(i-2)*W*0.115;
+    let py=Y+H*0.88,fr=0,dir='d';
+    if(vr===1){py-=4+(i&1)*3;fr=1;if(i&1)dir='l';}
+    if(vr===2&&i>0){fr=2;if(i&1)dir='r';}
+    const look=IB.HERO_DEFS[i]?IB.HERO_DEFS[i].look:null;
+    IB.drawPerson(g,px,py,dir,fr,look||{skin:'#e0a878',hair:'#241a10',jacket:'#5a6a3a',pants:'#3a4030'},small?0.62:0.82);
+  }
+  /* КАДР 3: Легінь тримає прапор */
+  if(vr===2&&!small){
+    const fx=X+W*0.5+W*0.33;
+    IB.P(g,fx,Y+H*0.6,2,H*0.28,'#5e4628');
+    IB.PA(g,[[fx+2,Y+H*0.6],[fx+13,Y+H*0.65],[fx+2,Y+H*0.7]],'#c83828');
+  }
+  /* КАДР 2: іскри над стрибком */
+  if(vr===1){
+    g.font='7px monospace';g.fillStyle='#f8e8a0';
+    for(let i=0;i<5;i++)g.fillText('✦',X+W*0.12+IB.hsh(i,seed,716)*W*0.76,Y+H*0.34+IB.hsh(i,2,717)*H*0.22);
+  }
+  /* фільтри настрою кадру */
+  if(vr===1){g.fillStyle='rgba(110,170,255,0.10)';g.fillRect(X,Y,W,H);}
+  if(vr===2){g.fillStyle='rgba(248,180,90,0.13)';g.fillRect(X,Y,W,H);}
+  /* віньєтка + зерно плівки */
+  const vg=g.createRadialGradient(X+W/2,Y+H*0.45,W*0.3,X+W/2,Y+H*0.5,W*0.75);
+  vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,'rgba(0,0,0,0.28)');
+  g.fillStyle=vg;g.fillRect(X,Y,W,H);
+  for(let i=0;i<24;i++){
+    g.fillStyle=IB.hsh(i,seed,718)<0.5?'rgba(255,255,255,0.05)':'rgba(0,0,0,0.06)';
+    g.fillRect(X+IB.hsh(i,1,719)*W,Y+IB.hsh(i,2,719)*H,1.4,1.4);
+  }
+  /* штамп часу як на плівці */
+  if(!small){
+    g.fillStyle='rgba(248,150,60,0.85)';g.font='6px monospace';
+    g.fillText('Д'+entry.day+' • '+entry.time,X+W-44,Y+12);
+  }
+  /* підпис */
   if(!small){
     g.fillStyle='#1a1a1a';g.font='7px monospace';g.textAlign='center';
     g.fillText(entry.name,X+W/2,Y+H+11);
     g.fillStyle='#5a5a5a';
     g.fillText('ДЕНЬ '+entry.day+' • '+entry.time+(entry.alt?' • '+entry.alt+' М':''),X+W/2,Y+H+19);
+    if(entry.var!==undefined){
+      g.fillStyle='#c83828';
+      g.fillText('КАДР '+(entry.var+1)+'/3 — '+IB.PHOTO_VARS[entry.var],X+W/2,Y+H+26);
+    }
     g.textAlign='left';
   }
 };
-IB.drawAlbumPhotoSmall=(cv,entry)=>{
+IB.drawAlbumPhotoSmall=IB.drawAlbumPhotoSmall=(cv,entry)=>{
   const g=cv.getContext('2d');
   g.imageSmoothingEnabled=false;
   g.clearRect(0,0,cv.width,cv.height);
@@ -1399,13 +1759,15 @@ IB.drawSummit=(g,dt)=>{
   g.beginPath();g.moveTo(240,30);g.lineTo(240,tY-66);g.stroke();
   g.save();g.translate(240,tY);g.rotate(ang);
   g.fillStyle='#c8b888';g.fillRect(-3,-71,6,8);   /* прищіпка */
-  IB.renderPhoto(g,IB.G.album[IB.G.album.length-1]||{name:spot.name,kind:spot.kind,day:IB.G.day,time:IB.clockStr(),wx:wx,seed:1},-56,-64,112,88,false);
+  const shots=IB.G.album.filter(a=>a.spot===spot.id&&a.day===IB.G.day);
+  const si=IB.M.min(shots.length-1,IB.M.floor(S.t/1.25));
+  IB.renderPhoto(g,shots.length?shots[si]:{name:spot.name,kind:spot.kind,day:IB.G.day,time:IB.clockStr(),wx:wx,seed:1,var:0},-56,-64,112,88,false);
   g.restore();
   /* підказка */
   if(S.t>1.2){
     g.font='7px monospace';g.textAlign='center';
     g.fillStyle='rgba(232,240,232,'+(0.55+0.35*Math.sin(S.t*4))+')';
-    g.fillText('клік / E — далі • полароїд у альбомі ✉',240,296);
+    g.fillText('клік / E — далі • КАДР '+(si+1)+'/'+shots.length+' — в альбомі ✉',240,296);
     g.textAlign='left';
   }
 };

@@ -68,11 +68,21 @@ IB.AUDIO=(function(){
   const NOTE={C4:262,D4:294,E4:330,F4:349,G4:392,A4:440,B4:494,C5:523,D5:587,E5:659,F5:698,G5:784,A5:880,B5:988,C6:1046,A3:220,B3:247,G3:196,F3:175,E3:165,D3:147,C3:131};
   /* коломийковий у-у-у-у ритм для гулянки */
   const GUL=[['C5',1],['E5',1],['G5',1],['E5',1],['F5',1],['A5',1],['G5',2],['E5',1],['C5',1],['D5',1],['E5',1],['F5',1],['E5',2],['D5',1],['C5',1],['G4',1],['A4',1],['B4',1],['C5',1],['D5',1],['E5',1],['D5',1],['C5',2],0];
+  /* v2.3: фазові мелодії вечірки — музика міняється щогодини */
+  const GUL_DANCE=[['G5',1],['G5',1],['E5',1],['C5',1],['D5',1],['E5',1],['D5',2],['C5',1],['E5',1],['G5',1],['A5',1],['G5',1],['E5',2],['D5',1],['C5',1],['D5',1],['E5',1],['F5',1],['E5',1],['D5',1],['C5',2],0];
+  const GUL_TALE=[['E5',2],['D5',1],['C5',1],['D5',2],['G4',2],0,['A4',1],['B4',1],['C5',2],['B4',1],['A4',1],['G4',3],0];
+  const GUL_PSY=[['C5',1],['E5',1],['A4',1],['B4',1],['D5',1],['A4',1],['G4',1],['B4',1],['C5',1],['E5',1],['F5',1],['E5',1],['C5',1],['G4',1],['A4',2],0];
+  const GUL_BLUE=[['A4',2],['G4',1],['F4',2],['E4',3],0,['D4',2],['E4',1],['F4',1],['E4',2],['D4',2],['C4',3],0];
+  const GUL_HANG=[['C4',3],0,0,['G3',3],0,0,['E4',2],['D4',2],['C4',4],0,0,0];
   const FOR=[['C4',2],['E4',1],['G4',2],['E4',1],['F4',2],['A4',1],['G4',3],0,['E4',2],['G4',1],['C5',2],['G4',1],['F4',2],['E4',1],['D4',3],0];
   const MENU=[['E4',1],['G4',1],['A4',2],['G4',1],['E4',1],['D4',2],['E4',1],['G4',1],['C5',2],['B4',1],['G4',1],['A4',3],0];
 
+  /* v2.3: барабани вечірки — «крок» на кожну долю */
+  let drumIv=null;
+  function drums(bpm){stopDrums();if(!ctx||muted)return;drumIv=setInterval(()=>{noise(0.045,0.075,260);},60000/bpm);}
+  function stopDrums(){if(drumIv){clearInterval(drumIv);drumIv=null;}}
   function playSeq(seq,bpm,wave,loop){
-    stop();
+    stopDrums();stop();
     if(!ctx||muted)return;
     const beat=60/bpm;let t=ctx.currentTime+0.05;
     const g=ctx.createGain();g.gain.value=0.5;g.connect(master);
@@ -102,13 +112,21 @@ IB.AUDIO=(function(){
   }
   function stop(){if(cur){if(cur.iv)clearInterval(cur.iv);try{cur.gain.disconnect();}catch(e){}cur=null;curName='';}}
 
+  /* v2.3: фази вечірки → (мелодія, темп, хвиля, барабани) */
+  const PH=[
+    {s:GUL,b:150,w:'square',d:0},{s:GUL_DANCE,b:172,w:'square',d:1},
+    {s:GUL_TALE,b:132,w:'triangle',d:0},{s:GUL_PSY,b:160,w:'sawtooth',d:1},
+    {s:GUL_DANCE,b:178,w:'square',d:1},{s:GUL_BLUE,b:88,w:'sine',d:0},
+    {s:GUL_PSY,b:186,w:'square',d:1},{s:GUL_HANG,b:60,w:'sine',d:0}];
   const MUSIC={
     menu(){playSeq(MENU,132,'square',true);},
     day(){playSeq(FOR,116,'triangle',true);},
     night(){playSeq(FOR,92,'sine',true);},
     gulyanka(){playSeq(GUL,168,'square',true);},
-    trip(){stop();beep(110,2,'sine',0.08,40);},
-    stop:stop,
+    trip(){stopDrums();stop();beep(110,2,'sine',0.08,40);},
+    /* v2.3: музика i-ї години гулянки */
+    partyPhase(i){const p=PH[(i|0)%8];stop();playSeq(p.s,p.b,p.w,true);if(p.d)drums(p.b);},
+    stop(){stopDrums();stop();},
   };
 
 IB.MUSIC=MUSIC;

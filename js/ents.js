@@ -87,6 +87,8 @@ IB.spawnVillagers=()=>{
   let si=0;
   for(const s of spots){
     const seed=si*17+3;si++;
+    const rc=IB.snapToReach?IB.snapToReach(s.x,s.y):{x:s.x,y:s.y}; /* v2.2: NPC завжди досяжний */
+    s.x=rc.x;s.y=rc.y;
     IB.E.npcs.push({
       x:s.x,y:s.y,dir:'d',fr:0,frT:0,
       look:IB.lookBySeed(seed),
@@ -137,10 +139,28 @@ IB.spawnTourist=()=>{
   let tx,ty,tries=0;
   do{tx=c.x+IB.rnd(-26,26);ty=c.y+IB.rnd(-26,26);tries++;}
   while(tries<40&&(IB.W.at(tx,ty)===0||IB.W.elevAt(tx,ty)>=6));
+  const rc=IB.snapToReach?IB.snapToReach(tx,ty):{x:tx,y:ty};tx=rc.x;ty=rc.y; /* v2.2: без заглушок */
   IB.E.tourist={x:tx,y:ty,dir:'d',fr:0,frT:0,
     look:{skin:'#e0a878',hair:'#241a10',hat:'cap',hatc:'#e07038',jacket:'#e07038',pants:'#3a3a44'},
     name:'ЗАГУБЛЕНИЙ ТУРИСТ',found:false,follow:false};
   IB.logLine('СЛУХ: десь у лісі хтось кричить «ДОПОМОЖІТЬ!»','gold');
+};
+
+/* ---------- v2.2: антизалипання — тихо перенести героя до лідера ---------- */
+IB.unstickTo=(leader,h)=>{
+  for(let k=0;k<14;k++){
+    const a=IB.rnd(0,6.28),r=IB.rnd(0.6,2.2);
+    const nx=leader.x+IB.M.cos(a)*r,ny=leader.y+IB.M.sin(a)*r;
+    if(IB.walkable(nx,ny)&&IB.M.abs(IB.W.elevAt(nx,ny)-IB.W.elevAt(leader.x,leader.y))<=1.01){
+      h.x=nx;h.y=ny;h.tx=nx;h.ty=ny;return true;
+    }
+  }
+  h.x=leader.x+0.8;h.y=leader.y;h.tx=h.x;h.ty=h.y;
+  return true;
+};
+IB.unstickSay=(txt)=>{
+  const now=performance.now();
+  if(!IB._unstickT||now-IB._unstickT>12000){IB._unstickT=now;IB.toast(txt,'gold');}
 };
 
 /* ---------- РУХ/ШІ ---------- */
@@ -172,9 +192,11 @@ function moveEnt(e,dt,speed){
 function idleAnim(e,dt){e.fr=0;e.frT=0;}
 
 function pickWander(e,r){
+  const R=IB.W.reach,WW=IB.W.W;
   for(let i=0;i<8;i++){
     const nx=e.hx+IB.rnd(-r,r),ny=e.hy+IB.rnd(-r,r);
-    if(walkable(nx,ny)){e.tx=nx;e.ty=ny;return true;}
+    /* v2.2: ціль має бути досяжною (не кишеня за деревами/скелями) */
+    if(walkable(nx,ny)&&(!R||R[(ny|0)*WW+(nx|0)]>=0)){e.tx=nx;e.ty=ny;return true;}
   }
   return false;
 }
@@ -184,7 +206,17 @@ IB.updateNpcs=(dt)=>{
   for(const n of IB.E.npcs){
     if(n.role==='molfar'){idleAnim(n,dt);continue;}
     n.wt-=dt;
-    if(n.tx!==n.x||n.ty!==n.y){moveEnt(n,dt,1.1);if(n.x===n.tx&&n.y===n.ty)n.wt=IB.rnd(2,6);}
+    if(n.tx!==n.x||n.ty!==n.y){
+      moveEnt(n,dt,1.1);
+      if(n.x===n.tx&&n.y===n.ty)n.wt=IB.rnd(2,6);
+      /* v2.2: NPC застряг у лабіринті 3с — повертається на своє місце */
+      if(n.nx===undefined){n.nx=n.x;n.ny=n.y;n.nT=0;}
+      if(IB.dist(n.x,n.y,n.nx,n.ny)>0.2){n.nx=n.x;n.ny=n.y;n.nT=0;}
+      else{
+        n.nT=(n.nT||0)+dt;
+        if(n.nT>3){n.x=n.hx;n.y=n.hy;n.tx=n.hx;n.ty=n.hy;n.wt=IB.rnd(1,3);n.nT=0;n.nx=undefined;}
+      }
+    }
     else if(n.wt<=0){if(!pickWander(n,4))n.wt=2;}
     else idleAnim(n,dt);
   }
@@ -252,7 +284,32 @@ IB.updateTeam=(dt)=>{
   const fire=IB.G.fireNear?IB.G.fireNear:null;
   for(let i=1;i<IB.E.team.length;i++){
     const h=IB.E.team[i];
-    if(IB.G.party.active||IB.G.trip.active){idleAnim(h,dt);continue;}
+    if(IB.G.trip.active){idleAnim(h,dt);continue;}
+    /* v2.3: ВЕЧІРКОВЕ ДІЙСТВО — танці навколо вогню, «упав — лежить», «попадали» */
+    if(IB.G.party.active){
+      if(h.lying>0){
+        h.lying-=dt;idleAnim(h,dt);
+        if(h.lying<=0){h.lying=0;h.pW=IB.rnd(0.5,1.1)*(IB.M.random()<0.5?-1:1);
+          h.bubble={txt:['Ой... голова','Та я не спав!','Де це я?','Ще кружки три!'][IB.ri(0,3)],t:0,life:2.6};}
+        continue;
+      }
+      const ph=IB.PARTY_PHASES[IB.M.min(IB.G.party.hour,7)];
+      if(IB.M.random()<dt*ph.fall*(IB.G.party.dry?0.55:1)){
+        h.lying=IB.rnd(7,16);h.lieDir=IB.M.random()<0.5?-1.35:1.35;
+        h.bubble={txt:['Упав!','Хх-х...','Ой-ой-ой...','Та все нормально!'][IB.ri(0,3)],t:0,life:3};
+        IB.floatMsg(h.x,h.y,'💥');IB.SFX.step();
+        continue;
+      }
+      const camp=IB.campById(IB.G.party.at);
+      if(camp&&ph.dance>0&&h.pSty<=ph.dance){
+        h.pAng=(h.pAng||IB.rnd(0,6.28))+dt*(h.pW||0.7);
+        const rr=h.pR||IB.rnd(1.6,3.0);
+        h.tx=camp.x+IB.M.cos(h.pAng)*rr;h.ty=camp.y+IB.M.sin(h.pAng)*rr*0.8;
+        if(!moveEnt(h,dt,2.7))h.pAng+=dt*0.9; /* вперся — кружляє далі */
+        continue;
+      }
+      idleAnim(h,dt);continue;
+    }
     /* v1.5: ПОШУК — пошуковці бігають навколо лідера і КРИЧАТЬ */
     if(h.searchT>0){
       h.searchT-=dt;h.shoutT=(h.shoutT||0)-dt;h.rwT=(h.rwT||0)-dt;
@@ -270,14 +327,17 @@ IB.updateTeam=(dt)=>{
     /* v1.5: загублений іде НА ГОЛОС — до лідера; це і «розліплює» застряглих */
     if(h.gotoSound){
       h.tx=leader.x;h.ty=leader.y;
-      moveEnt(h,dt,3.3);
+      moveEnt(h,dt,4.4);
       if(IB.M.random()<dt*0.8)IB.floatMsg(h.x,h.y,'❓');
       const d=IB.dist(h.x,h.y,leader.x,leader.y);
-      if(h.gBest===undefined||d>h.gBest)h.gBest=d; /* найкращий прогрес */
-      h.gIdle=(d>=h.gBest-0.05)?(h.gIdle||0)+dt:0;
-      if(h.gIdle>10){ /* антизалипання: 10с без прогресу — наздоганяє тропами */
-        h.x=leader.x+IB.rnd(-1.6,1.6);h.y=leader.y+IB.rnd(-1.2,1.2);
-        IB.toast(h.name+' протопав несподіваною стежкою і наздогнав групу!','gold');
+      /* v2.2-fix: прогрес = плаваюча точка відліку (gBest-макс ніколи не спрацьовував) */
+      if(h.gRef===undefined)h.gRef=d;
+      if(d<h.gRef-0.3){h.gIdle=0;h.gRef=d;}
+      else h.gIdle=(h.gIdle||0)+dt;
+      if(h.gIdle>3.5){ /* 3.5с без зближення — «гук» пробиває хащі швидше */
+        IB.unstickTo(leader,h);
+        IB.unstickSay(h.name+' почав «АУ!» і пробрався несподіваною стежкою!');
+        h.gRef=IB.dist(h.x,h.y,leader.x,leader.y);h.gIdle=0;
       }
       if(IB.dist(h.x,h.y,leader.x,leader.y)<3)IB.searchFound(h);
       continue;
@@ -286,8 +346,21 @@ IB.updateTeam=(dt)=>{
       const ang=i*1.35+IB.M.sin(IB.G.t*0.5+i)*0.2;
       const tx=leader.x-IB.M.cos(ang)*1.6,ty=leader.y-IB.M.sin(ang)*1.6;
       const d=IB.dist(h.x,h.y,tx,ty);
-      if(d>1.6){h.tx=tx;h.ty=ty;moveEnt(h,dt,leader.running?4.6:3.4);}
-      else{idleAnim(h,dt);}
+      if(d>1.6){
+        /* v2.2: застряг у хащах — 2с без прогресу → прямо до лідера, 4.5с → наздоганяє */
+        if(h.fx===undefined){h.fx=h.x;h.fy=h.y;h.fT=0;h.fPh=0;}
+        h.fT+=dt;
+        if(IB.dist(h.x,h.y,h.fx,h.fy)>=0.3){h.fx=h.x;h.fy=h.y;h.fT=0;h.fPh=0;}
+        else if(h.fT>2)h.fPh=1;
+        if(h.fPh>=1){h.tx=leader.x;h.ty=leader.y;moveEnt(h,dt,leader.running?4.6:3.6);}
+        else{h.tx=tx;h.ty=ty;moveEnt(h,dt,leader.running?4.6:3.4);}
+        if(h.fT>4.5){
+          IB.unstickTo(leader,h);
+          IB.unstickSay(h.name+' пробрався крізь хащі і наздогнав групу!');
+          h.fx=h.x;h.fy=h.y;h.fT=0;h.fPh=0;
+        }
+      }
+      else{idleAnim(h,dt);h.fx=undefined;h.fT=0;h.fPh=0;}
       continue;
     }
     /* робота за дорученням */

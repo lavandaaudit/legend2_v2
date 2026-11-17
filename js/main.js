@@ -1,19 +1,22 @@
 /* VIKTOR LEGEND 2 — main.js: цикл, керування, взаємодії, панелі, діалоги, HUD */
-IB.showScene=(icon,title,text)=>{
-  const sc={icon,title,text};
+IB.showScene=(icon,title,text,nonblock)=>{
+  const sc={icon,title,text,nonblock:!!nonblock};
   if(IB._sceneOpen){(IB._sceneQueue=IB._sceneQueue||[]).push(sc);return;}
   IB._openScene(sc);
 };
 IB._openScene=(sc)=>{
-  IB._sceneOpen=true;
+  IB._sceneOpen=true;IB._sceneNonblock=!!sc.nonblock;
   IB.$('scene-icon').textContent=sc.icon;
   IB.$('scene-title').textContent=sc.title;
   IB.$('scene-text').textContent=sc.text;
   IB.$('scene').classList.remove('hidden');
   IB.SFX.ui&&IB.SFX.ui();
+  /* v2.3: сцени гулянки не заважають ходити і самі закриваються */
+  if(IB._sceneNonblock){if(IB._sceneTmr)clearTimeout(IB._sceneTmr);IB._sceneTmr=setTimeout(IB.closeScene,6000);}
 };
 IB.closeScene=()=>{
-  IB._sceneOpen=false;
+  IB._sceneOpen=false;IB._sceneNonblock=false;
+  if(IB._sceneTmr){clearTimeout(IB._sceneTmr);IB._sceneTmr=null;}
   IB.$('scene').classList.add('hidden');
   const q=IB._sceneQueue&&IB._sceneQueue.shift();
   if(q)IB._openScene(q);
@@ -172,7 +175,7 @@ IB.MAIN=(function(){
     IB.journalAdd('🚐','Частина 2 почалася. Після Києва група дісталася Карпат. Перший кемпінг — «Старе Вогнище».');
     IB.journalAdd('👥','Група з Києва: ЛЕГЕНДА (лідер), TOXIC (кухар), PABLO (рибалка), DIIN (майстер), ROCK (весельчак).');
     IB.banner('КАРПАТИ. ДЕНЬ ПЕРШИЙ.');
-    IB.toast('E — дія • M — багаж • TAB — карта • Q — гулянка • R — ШУКАТИ • F — фонарики • B — ТАБІР','gold');
+    IB.toast('E — дія • M — багаж • TAB — карта • Q — гулянка • R — ГУКАТИ • F — фонарики • B — ТАБІР','gold');
   }
   function startGame(){
     IB.$('title').classList.add('hidden');
@@ -212,9 +215,9 @@ IB.MAIN=(function(){
     IB.$('hud-money').textContent='₴'+IB.G.money;
     IB.$('hud-mtitle').textContent=IB.questT();
     IB.$('hud-mob').textContent=IB.W.zoneAt(L.x,L.y);
-    if(IB.G.party.active)IB.alertBox('🔥 ГУЛЯНКА: '+IB.G.party.t.toFixed(1)+' / 8 ГОД','al-fun');
+    if(IB.G.party.active)IB.alertBox('🔥 ГУЛЯНКА '+IB.G.party.t.toFixed(1)+'/8 — '+IB.PARTY_PHASES[IB.M.min(IB.G.party.hour,7)].n,'al-fun');
     else if(IB.G.trip.active)IB.alertBox('✦ ТРІП: '+IB.G.trip.t.toFixed(1)+' / 6 ГОД','al-fun');
-    else if(IB.G.search)IB.alertBox('🔎 ШУКАЄМО: '+IB.G.search.lost.join(', ')+' — вони йдуть на голоси','al-warn');
+    else if(IB.G.search)IB.alertBox('🔊 ГУКАЄМО: '+IB.G.search.lost.join(', ')+' — біжать на голоси','al-warn');
     else if(IB.G.hangover>0)IB.alertBox('😵 ПОХМІЛЛЯ (до 12:00) — вода/їжа/розсіл','al-warn');
     else if(IB.G.frozenMate)IB.alertBox('❄ '+IB.G.frozenMate.name+' ЗАМЕРЗАЄ — СИНІЙ МАРКЕР!','al-red');
     else if(IB.G.wx.type==='blizzard')IB.alertBox('❄ ХУРТОВИНА — БУДЬ БІЛЯ ВОГНЮ','al-red');
@@ -227,7 +230,8 @@ IB.MAIN=(function(){
   /* ---------- РУХ ЛІДЕРА ---------- */
   function updateLeader(dt){
     const L=IB.E.team[0];
-    if(IB.G.party.active||IB.G.trip.active||IB._sceneOpen||mode!=='game'){L.fr=0;return;}
+    /* v2.3: під час гулянки МОЖНА ХОДИТИ (тріп і сцен-картки чіпляють, як і було) */
+    if(IB.G.trip.active||(IB._sceneOpen&&!IB._sceneNonblock)||mode!=='game'){L.fr=0;return;}
     const mv=moveVec();
     L.running=!!keys.shift;
     const spd=IB.heroSpeed(L)*(mv.x||mv.y?1:0);
@@ -251,8 +255,17 @@ IB.MAIN=(function(){
       /* окремі осі */
       if(ok){L.x=nx;L.y=ny;}
       else{
-        if(!inWater&&IB.walkable(nx,L.y)&&IB.M.abs(IB.W.elevAt(nx,L.y)-curH)<=1.01)L.x=nx;
-        else if(!inWater&&IB.walkable(L.x,ny)&&IB.M.abs(IB.W.elevAt(L.x,ny)-curH)<=1.01)L.y=ny;
+        let slid=false;
+        if(!inWater&&IB.walkable(nx,L.y)&&IB.M.abs(IB.W.elevAt(nx,L.y)-curH)<=1.01){L.x=nx;slid=true;}
+        else if(!inWater&&IB.walkable(L.x,ny)&&IB.M.abs(IB.W.elevAt(L.x,ny)-curH)<=1.01){L.y=ny;slid=true;}
+        /* v2.2: ковзання по перешкоді — 6 напрямків навколо курсу (вихід із хащів) */
+        if(!slid&&!inWater&&(mv.x||mv.y)){
+          const base=IB.M.atan2(mv.y,mv.x),st=IB.M.hypot(mv.x,mv.y)*spd*dt;
+          for(const off of [0.5,-0.5,1.0,-1.0,1.6,-1.6]){
+            const ex=L.x+IB.M.cos(base+off)*st,ey=L.y+IB.M.sin(base+off)*st;
+            if(IB.walkable(ex,ey)&&IB.M.abs(IB.W.elevAt(ex,ey)-curH)<=1.01){L.x=ex;L.y=ey;slid=true;break;}
+          }
+        }
       }
       if(inWater&&!L.swim){L.swim=true;IB.SFX.splash();IB.toast('Ти у воді! Виходь на берег, інакше замерзнеш');}
       if(!inWater&&L.swim){L.swim=false;}
@@ -669,7 +682,7 @@ IB.MAIN=(function(){
             if(qk==='sheep'){
               /* вівця губиться */
               const a=IB.E.animals.find(a=>a.type==='sheep'&&!a.lost);
-              if(a){a.lost=true;a.dark=true;a.x=n.x+IB.rnd(-20,-8);a.y=n.y+IB.rnd(-14,10);a.pen=null;}
+              if(a){a.lost=true;a.dark=true;const rc=IB.snapToReach?IB.snapToReach(n.x+IB.rnd(-20,-8),n.y+IB.rnd(-14,10)):{x:a.x,y:a.y};a.x=rc.x;a.y=rc.y;a.pen=null;} /* v2.2 */
               IB.banner('ВІВЦЯ ЗАГУБИЛАСЬ ДЕСЬ НА ЛУГАХ (рожева крапка на карті)');
             }
             if(qk==='letter'){IB.G.flags.hasLetter=true;IB.toast('Отримано лист для пані Марічки','gold');}
@@ -808,11 +821,11 @@ IB.MAIN=(function(){
         (i>0?['follow','wood','water','fish','farm','cook','rest'].map(tk=>'<div class="prow click" data-task="'+i+'|'+tk+'"><span class="nm">'+(tk==='follow'?'Йти зі мною':(IB.TASKS[tk]?IB.TASKS[tk].label:'Відпочивати'))+'</span><span class="'+(h.task===tk?'ok':'no')+'">'+(h.task===tk?'✔ поточне':'')+'</span></div>').join(''):'')+
         '</div>';
     });
-    html+='<div class="pcard"><b>ГУЛЯНКА (Q):</b><span class="ds"> КОЛИ ЗАВГОДНО (v1.5) — головне: живе вогнище з дровами і вся група поруч. Напитки (≥6) і закуска (≥4) роблять гулянку дужчою — без них буде «суха». Вранці — похмілля до 12:00.</span></div>';
+    html+='<div class="pcard"><b>ГУЛЯНКА (Q):</b><span class="ds"> КОЛИ ЗАВГОДНО (v1.5) — живе вогнище з дровами і вся група поруч. Напитки (≥6) і закуска (≥4) роблять дужчою. ХОДИТИ МОЖНА. 8 фаз на 8 годин: РОЗГІН → ТАНЦІ → БАЙКИ → ГРИБНИЙ ТРІП (психоделічні кольори і глічі) → ПОПАДАЛИ (упали — лежать) → ЖАЛІБНИЙ ТРІП → РОЗГУЛ → ПОХМІЛЛЯ. Музика і світло міняються щогодини, герої танцюють навколо вогню, перегукуються байками і анекдотами, падають і лежать. Вранці — похмілля до 12:00.</span></div>';
     html+='<div class="pcard"><b>⛺ ТАБІР БУДЬ-ДЕ (B):</b><span class="ds"> кнопка ⛺ ТАБІР ставить похідний табір на ЛЮБОМУ рівному місці (не вода/скелі/село): усі поруч → намет стоїть одразу, майданчик розчищено. Вогнище, стіл+казан, колодязь, грядка, сушилка — E біля табору → меню будівництва. Сон у наметі, гулянка, рецепти, тепло і світло вогню — все як у кемпінгах. Табори видно на карті (TAB) жовтими наметами і збережено у сейві.</span></div>';
     html+='<div class="pcard"><b>✦ «5 Г»:</b><span class="ds"> у тебе пакетиків: '+IB.G.inv.trip5+'. Ніч П\'яти Зірок — у темряві, зі всією групою.</span></div>';
     html+='<div class="prow click" data-torch="1"><span class="nm">🔦 ФОНАРИКИ: '+(IB.G.torch!==false?'УВІМКНЕНО (світять уночі, кажани прилітають)':'ВИМКНЕНО (темно, кажани не летять)')+'</span><span class="ds">кнопка ФОНАР / клавіша F</span><span class="'+(IB.G.torch!==false?'ok':'no')+'">'+'перемкнути'+'</span></div>';
-    html+='<div class="prow click" data-srch="1"><span class="nm">🔎 ШУКАТИ ЗАГУБЛЕНИХ</span><span class="ds">група кричить — загублені йдуть на голос</span><span class="ok">R</span></div>';
+    html+='<div class="prow click" data-srch="1"><span class="nm">🔊 ГУКАТИ (зібрати групу)</span><span class="ds">група кричить «АУ!» — загублені біжать на голос швидше, ніж самі дійшли б; пробивають хащі</span><span class="ok">R</span></div>';
     openPanel('ГРУПА — ЛЕГЕНДАРНА П\'ЯТІРКА',html);
     IB.$('panel-body').querySelectorAll('[data-task]').forEach(el=>{
       el.onclick=()=>{
@@ -1056,6 +1069,7 @@ IB.MAIN=(function(){
         IB.eventsTick(dt);IB.fishTick(dt);
         IB.updateBeasts(dt);IB.searchTick(dt); /* v1.5: звірі + пошук */
       }
+      if(IB.G.party.active)IB.updateTeam(dt); /* v2.3: герої танцюють, поки гулянка */
       IB.timeTick(dt);
       IB.survTick(dt);
       if(IB.G.party.active)IB.partyTick(dt);
@@ -1129,7 +1143,7 @@ IB.MAIN=(function(){
 
   function openTravels(){
     const rs=IB.W.ROUTES||[];
-    let h='<div class="pcard"><div class="ds">КУРТОЧНИЙ ВІДДІЛ «КАРПАТИ-ТУР»: реальні маршрути — Чорногора, Ґорґани, Мармароси, кордони і Шацькі озера. На кожній вершині група робить ФІО — полароїди летять у альбом.</div></div>';
+    let h='<div class="pcard"><div class="ds">КУРТОЧНИЙ ВІДДІЛ «КАРПАТИ-ТУР»: реальні маршрути — Чорногора, Ґорґани, Мармароси, кордони і Шацькі озера. На кожній точці — ФОТОСЕРІЯ з 3 кадрів (УСІ РАЗОМ / СТРИБОК! / ПРАПОРЕЦЬ) — у альбом.</div></div>';
     rs.forEach((r,i)=>{
       const c=IB.canTravel(r);
       const st=(IB.G.stamps||{})[r.id];
