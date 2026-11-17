@@ -11,7 +11,6 @@
 
 ```
 index.html          — ВЕСЬ ГРА В ОДНОМУ ФАЙЛІ (публікується на GitHub Pages)
-.nojekyll           — щоб GitHub Pages не чіпав файли
 README.md           — цей файл
 CHANGELOG.txt       — повний список фіч + патчі
 index.dev.html      — джерело розробки (теги <script src>)
@@ -43,51 +42,6 @@ tools/
 > Гравцю потрібен ТІЛЬКИ `index.html`. Решта — для розробки й повторного
 > використання активів.
 
-## Швидкий старт
-
-```bash
-python3 -m http.server 8080     # необов'язково
-# відкрий http://localhost:8080  або просто подвійний клік на index.html
-```
-
-Старт: після екрана BIOS клікни/тапни будь-де → меню → **НОВА ГРА**.
-
-## Як запушити в НОВИЙ репозиторій (GitHub Pages)
-
-```bash
-# 1. створи новий порожній репозиторій на GitHub (наприклад legend_karpaty)
-# 2. розпакуй архів — вміст папки legend_karpaty/ кладемо в корінь репо:
-cd legend_karpaty
-git init
-git add -A
-git commit -m "VIKTOR LEGEND 2: КАРПАТИ — v2.4 «ФІНАЛ — ВЕРШИНА»"
-git branch -M main
-git remote add origin https://github.com/<ТВІЙ-НІК>/legend_karpaty.git
-git push -u origin main
-# 3. увімкни Pages:
-#    Settings → Pages → Build and deployment →
-#    Source: «Deploy from a branch» → Branch: main / Folder: / (root) → Save
-# 4. гра буде тут:
-#    https://<ТВІЙ-НІК>.github.io/legend_karpaty/
-```
-
-Варіант Б (як перша частина): скопіююй `index.html` у папку `legend_v6/`
-репозиторію `lavandaaudit.github.io` — гра буде на
-`https://lavandaaudit.github.io/legend_v6/`.
-
-> Не мішай файли частин в одній папці — index.html у частин різні.
-
-## Розробка
-
-```bash
-# правиш js/ чи style.css → перезбираєш одиночний файл:
-python3 tools/build_inline.py
-# змінив PNG у assets/ → перегенеровуєш base64-модуль:
-python3 tools/gen_v5assets.py
-```
-
-Для дев-запуску з окремими файлами: `python3 -m http.server 8080` з кореня
-і відкрий `index.dev.html`.
 
 ## Керування
 
@@ -112,11 +66,7 @@ python3 tools/gen_v5assets.py
 Мобільно: віртуальний джойстик + кнопки E/RUN/MAP/BAG/ГРУПА/ТРЕКИ/🔊 ГУКАТИ/🔦 ФОНАР/⛺ ТАБІР/ГУЛЯНКА;
 діалоги й панелі завжди ПОВЕРХ кнопок, інфоблоки стиснуті під телефон.
 
-## Кредити
 
-Активи першої частини (будівлі, авто, дерева, реквізит) —
-[Kenney](https://kenney.nl), ліцензія CC0 1.0. Гра кодом: піксель-арт
-малюється прямо на canvas, PNG — у base64 всередині index.html.
 
 ---
 © IBONARIUM GAMEWORKS • Київ • 17.11.2026 • v2.4 «ФІНАЛ — ВЕРШИНА»
