@@ -306,3 +306,14 @@ body.fakefs #game{width:100%;height:100%;object-fit:contain}
 #climb-abort.hidden,#int-exit.hidden{display:none}
 #panel{cursor:pointer}
 #panel-box{cursor:auto}
+
+/* v2.4d: АСЕТИ — jpeg-и з репозиторію у секції «ПРО ГРУ ТА АСЕТИ» (під грою) */
+#ab-assets{margin:14px 0 6px}
+#ab-assets .ab-cap{color:var(--gold);letter-spacing:1px;margin-bottom:10px}
+#ab-assets .ab-row{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start}
+.ab-fig{flex:1 1 230px;max-width:330px;margin:0;background:#0d1811;border:1px solid var(--line);
+  border-radius:8px;padding:8px;text-align:center}
+.ab-fig img{display:block;width:100%;height:auto;border-radius:4px;background:var(--bg0);
+  image-rendering:auto}
+.ab-fig figcaption{font-size:7px;color:var(--dim);letter-spacing:1px;line-height:1.9;margin-top:7px}
+@media (max-width:560px){.ab-fig{max-width:none}}

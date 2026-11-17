@@ -26,5 +26,36 @@ n_before = len(re.findall(r'<script src="js/', html2))
 n_after = len(re.findall(r'<script src="js/', html3))
 assert n_after == 0 and n_before == 9, f'expected 9 scripts, found {n_before}'
 
+# 3) v2.4d: інлайн <img src="assets/*.jpg"> у base64 data URI —
+#    гра лишається ОДНИМ файлом (нуль зовнішніх запитів, офлайн, file://).
+#    PIL є → оптимізація (масштаб до 640px по ширині, progressive JPEG),
+#    PIL немає → оригінальні байти. Відображаються у секції «ПРО ГРУ ТА АСЕТИ».
+import base64
+try:
+    from PIL import Image
+    import io
+    def _jpg_bytes(p):
+        im = Image.open(p).convert('RGB')
+        w, h = im.size
+        if w > 640:
+            im = im.resize((640, round(h * 640 / w)), Image.LANCZOS)
+        buf = io.BytesIO()
+        im.save(buf, 'JPEG', quality=82, optimize=True, progressive=True)
+        return buf.getvalue()
+except Exception:
+    def _jpg_bytes(p):
+        return p.read_bytes()
+
+def _img_repl(m):
+    data = _jpg_bytes(ROOT / m.group(2))
+    b64 = base64.b64encode(data).decode('ascii')
+    return m.group(1) + 'src="data:image/jpeg;base64,' + b64 + '"'
+
+n_jpg = len(re.findall(r'<img [^>]*?src="assets/[^"]+\.jpg"', html3))
+assert n_jpg >= 1, 'no <img src="assets/*.jpg"> found in index.dev.html'
+html3 = re.sub(r'(<img [^>]*?)src="(assets/[^"]+\.jpg)"', _img_repl, html3)
+assert 'src="assets/' not in html3, 'external assets img left after inline'
+print(f'OK: {n_jpg} jpeg(s) inlined as base64 data URI')
+
 (ROOT / 'index.html').write_text(html3, encoding='utf-8')
 print(f'OK: single-file index.html written ({len(html3)} bytes), {n_before} scripts + css inlined')
