@@ -1342,7 +1342,7 @@ IB.MAIN=(function(){
     IB.$('prompt').classList.add('hidden');
     IB.$('int-exit').classList.remove('hidden');
     IB.SFX.ui();
-    IB.toast(def.title+' — WASD рух • E — до об\'єктів • ✖ ВИХІД — кнопка зверху');
+    IB.toast(def.title+' — WASD рух • E — об\'єкти, біля ЖОВТОЇ СТРІЛКИ (двері) — вийти • ✖ ВИХІД зверху');
   }
   function exitInterior(){
     if(!IB.INT_CUR)return;
@@ -1373,9 +1373,15 @@ IB.MAIN=(function(){
     let best=null,bd=1.35;
     for(const it of D.items){const dd=IB.dist(L.x,L.y,it.x,it.y);if(dd<bd){bd=dd;best=it;}}
     C.hi=best;
+    C.nearExit=IB.dist(L.x,L.y,C.entry.x,C.entry.y)<1.6; /* v2.4c: для підказки ВИХІД */
   }
   function interiorInteract(){
-    const C=IB.INT_CUR;if(!C||!C.hi)return;
+    const C=IB.INT_CUR;if(!C)return;
+    /* v2.4c: E БІЛЯ ДВЕРЕЙ = ВИХІД (перевіряємо першим: поріг «безкоштовний»).
+       Якщо до дверей ближче, ніж до найближчого предмета — виходимо на вулицю. */
+    const dExit=IB.dist(C.hero.x,C.hero.y,C.entry.x,C.entry.y);
+    if(dExit<1.6&&(!C.hi||dExit<IB.dist(C.hero.x,C.hero.y,C.hi.x,C.hi.y))){exitInterior();return;}
+    if(!C.hi)return;
     const it=C.hi,b=C.b,L=IB.E.team[0];
     switch(it.k){
       case 'pech':

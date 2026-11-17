@@ -1425,6 +1425,23 @@ IB.drawInterior=(g,dt)=>{
     const mx=IB.clamp(C.entry.x-1-(i-1)*0.8,0.6,rw-1.6),my=IB.clamp(C.entry.y+0.3+(i%2)*0.5,0.6,rh-1);
     IB.drawPerson(g,(mx-my)*16+OX,(mx+my)*8+OY-4,h.dir||'d',0,h.look);
   }
+  /* v2.4c.1: маркер виходу ПОВЕРХ групи — двері, килимок, сяйво, жовта
+     стрілка, що підстрибує, з обводкою і підписом «E — ВИХІД» */
+  {
+    const ex=(C.entry.x-C.entry.y)*16+OX,ey=(C.entry.x+C.entry.y)*8+OY;
+    const bob=IB.M.round(IB.M.sin(performance.now()*0.005)*2.5);
+    g.fillStyle='rgba(240,200,120,0.12)';g.beginPath();g.arc(ex,ey-4,22,0,7);g.fill();
+    IB.rhomb(g,ex,ey+2,28,14,'#5e4628');
+    IB.rhomb(g,ex,ey+2,18,9,'#8a6a42');
+    IB.P(g,ex-9,ey-24,18,22,'#241a0e');
+    IB.P(g,ex-6,ey-22,12,18,'#4a3a22');
+    IB.P(g,ex+2,ey-15,2,3,'#c8a028');
+    g.fillStyle='#f0d050';g.strokeStyle='#241a0e';g.lineWidth=1;
+    g.beginPath();g.moveTo(ex,ey-37+bob);g.lineTo(ex-6,ey-30+bob);g.lineTo(ex+6,ey-30+bob);g.closePath();g.fill();g.stroke();
+    g.font='bold 9px monospace';
+    g.fillStyle='#241a0e';g.fillText('E — ВИХІД',ex-20,ey-45+bob);
+    g.fillStyle='#f0d050';g.fillText('E — ВИХІД',ex-21,ey-46+bob);
+  }
   /* затемнення від стін + тепле світло */
   g.fillStyle='rgba(40,24,10,0.10)';g.fillRect(0,0,480,336);
   /* назва + підказка */
@@ -1433,7 +1450,7 @@ IB.drawInterior=(g,dt)=>{
   const it2=C.hi;
   g.fillStyle='rgba(6,12,10,0.82)';g.fillRect(110,306,260,22);
   g.font='9px monospace';g.fillStyle='#f0d050';
-  g.fillText(it2?('[E] '+it2.label):('РУХ — WASD • E — ДО СТІНКИ • ESC — ВИЙТИ'),122,320);
+  g.fillText(it2?('[E] '+it2.label):(C.nearExit?'[E] ВИХІД — НА ВУЛИЦЮ • ESC — ВИЙТИ':'РУХ — WASD • E — ДО ОБ\'ЄКТІВ • ESC — ВИЙТИ'),122,320);
 };
 
 /* ==================== v1.2: ФОТО-ПОЛАРОЇДИ ==================== */
