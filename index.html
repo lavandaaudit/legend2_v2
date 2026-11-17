@@ -3292,6 +3292,12 @@ IB.loadGame=()=>{
       axetier:d.axetier||1,touristDone:d.touristDone||false,stamps:d.stamps||{},torch:d.torch!==false});
     IB.spawnTeam(d.spawn.x,d.spawn.y);
     for(const s of d.team||[]){const h=IB.E.team.find(x=>x.id===s.id);if(h){h.x=s.x;h.y=s.y;h.hp=s.hp;h.food=s.food;h.water=s.water;h.mood=s.mood;h.alc=s.alc;}}
+    /* v2.4b: РЯТУНОК старих сейвів — героя, збереженого на перекритому тайлі
+       (баг «застряв у Верховинці посеред вулиці»), витягуємо на досяжний тайл. */
+    for(const h of IB.E.team){
+      if(!IB.walkable(h.x,h.y)){const q=IB.snapToReach(IB.M.round(h.x),IB.M.round(h.y));
+        h.x=q.x;h.y=q.y;h.tx=q.x;h.ty=q.y;h.target=null;}
+    }
     IB.spawnVillagers();IB.spawnAnimals();IB.spawnFishes();
     IB.G.mode='game'; /* v1.2 fix: продовження запускало цикл гри */
     return true;
@@ -3805,6 +3811,11 @@ IB.V5_ANCH={
   bench:{ax:11,ay:12},barrels:{ax:10,ay:13},crate:{ax:10,ay:9},busstop:{ax:13,ay:13},
   swing:{ax:12,ay:16},slide:{ax:10,ay:18},dead:{ax:11,ay:33},
 };
+/* v2.4b: дрібні будІвлі бІльші (відгук «є малі будІвлі — збільшуй»): старі
+   хати-курени, стодола, сільрада, гараж, ларьок і крамниця малюються у
+   масштабі села; якорі масштабуються разом, колізії footprint не чіпаємо. */
+IB.V5_SCL={hist2:1.5,hist2b:1.5,hist2c:1.5,hist3:1.35,khrus:1.45,
+  bld_garage_0:1.4,shop2:1.25,bld_shop1_0:1.15};
 function bldPick(b){
   if(b.img)return b.img;                       /* v1.4: явний актив у даних світу */
   if(b.type==='shop')return 'bld_shop1_0';
@@ -3870,11 +3881,12 @@ function drawBuilding(g,b,ox,oy,dt){
   /* ---------- ДАЧІ/ХАТИ/КРАМНИЦЯ/КОРЧМА — PNG ПЕРШОЇ ЧАСТИНИ ---------- */
   if(im){
     const an=IB.V5_ANCH[name];                 /* v1.4: точний якір котеджів v5 */
-    if(an)g.drawImage(im,px-an.ax,py-an.ay);
-    else g.drawImage(im,px-im.width/2,py-im.height+6);
+    const scl=(IB.V5_SCL&&IB.V5_SCL[name])||1; /* v2.4b: дрібні будІвлі бІльші */
+    if(an)g.drawImage(im,px-an.ax*scl,py-an.ay*scl,im.width*scl,im.height*scl);
+    else g.drawImage(im,px-im.width*scl/2,py-im.height*scl+6,im.width*scl,im.height*scl);
     /* вікна світяться уночі — теплі плями на фасаді */
     if(lit){
-      const wh=im.height;
+      const wh=im.height*scl;
       IB.P(g,px-20,py-wh*0.44,6,7,'#f0c060');
       IB.P(g,px+13,py-wh*0.44,6,7,'#f0c060');
       IB.O(g,px-17,py-wh*0.44+3,8,9,'rgba(240,180,60,0.20)');
@@ -3882,7 +3894,7 @@ function drawBuilding(g,b,ox,oy,dt){
     }
     /* димар з димом для хат */
     if(b.type==='house'&&IB.M.sin(performance.now()*0.0011+b.x)>0){
-      const chy=py-(an?an.ay:im.height-6)+10;
+      const chy=py-(an?an.ay*scl:im.height*scl-6)+10;
       g.fillStyle='rgba(200,205,210,0.25)';
       IB.O(g,px+20,chy-4-((performance.now()*0.008)%8),3,3,'rgba(200,205,210,0.22)');
       IB.O(g,px+22,chy-10-((performance.now()*0.006)%10),2.4,2.4,'rgba(200,205,210,0.16)');
@@ -4329,28 +4341,28 @@ function drawCar(g,c,ox,oy,dt){
   const x=s.x+ox+16,y=s.y+oy+6;
   if(c.type==='van'){
     /* білий фургон групи (спогад про Київ) — процедурний */
-    IB.O(g,x+4,y,20,8,'#00000035');
-    IB.isoBox(g,x,y,30,16,9,c.c,IB.shade(c.c,-0.18),IB.shade(c.c,-0.3));
-    IB.P(g,x+6,y-4,18,5,'#2a3e5c');
-    IB.P(g,x+7,y-3,4,3,'#8ab8d8');IB.P(g,x+13,y-3,4,3,'#8ab8d8');IB.P(g,x+19,y-3,4,3,'#8ab8d8');
-    IB.P(g,x+4,y+3,2,3,IB.shade(c.c,-0.35));IB.P(g,x+24,y+3,2,3,IB.shade(c.c,-0.35));
-    IB.P(g,x+8,y+1,14,3,'#c83828');
+    IB.O(g,x+6,y,30,11,'#00000035');
+    IB.isoBox(g,x,y,44,23,13,c.c,IB.shade(c.c,-0.18),IB.shade(c.c,-0.3));
+    IB.P(g,x+9,y-6,27,7,'#2a3e5c');
+    IB.P(g,x+11,y-5,6,4,'#8ab8d8');IB.P(g,x+20,y-5,6,4,'#8ab8d8');IB.P(g,x+29,y-5,6,4,'#8ab8d8');
+    IB.P(g,x+6,y+5,3,4,IB.shade(c.c,-0.35));IB.P(g,x+36,y+5,3,4,IB.shade(c.c,-0.35));
+    IB.P(g,x+12,y+2,21,4,'#c83828');            /* v2.4b: ван бІльший */
     return;
   }
   const m=c.model&&IB.img('car_'+c.model+'_se')?c.model:null;
   const im=m?IB.img('car_'+m+'_se'):null;
   if(im){
     /* PNG-машини v5 (ВАЗ, Lanos, SUV, Truck) — вид SE, для лівого напрямку дзеркало */
-    const sc=0.42;
+    const sc=0.62;                     /* v2.4b: машини бІльші (було 0.42) */
     const src=(c.dir==='l')?(IB.mirror('car_'+m+'_se')||im):im;
     g.fillStyle='#00000035';g.beginPath();g.ellipse(x,y-1,im.width*sc*0.5,im.height*sc*0.28,0,0,7);g.fill();
     g.drawImage(src,x-im.width*sc/2,y-im.height*sc+4,im.width*sc,im.height*sc);
     /* фара/габарити вночі + БІП-БІП спалах */
     if(IB.nightFactor()>0.4){
       g.fillStyle='rgba(248,240,190,0.8)';
-      IB.O(g,x+(c.dir==='l'?-14:14),y-3,1.6,1.6,'rgba(248,240,190,0.8)');
+      IB.O(g,x+(c.dir==='l'?-im.width*sc*0.2:im.width*sc*0.2),y-4,2.2,2.2,'rgba(248,240,190,0.8)');
     }
-    if(c.honkT>4.4){g.font='9px monospace';g.fillStyle='#f0d050';g.fillText('БІП!',x-8,y-14);}
+    if(c.honkT>4.4){g.font='10px monospace';g.fillStyle='#f0d050';g.fillText('БІП!',x-9,y-im.height*sc-6);}
     return;
   }
   /* фолбек — процедурний бокс */
@@ -6261,7 +6273,22 @@ IB.MAIN=(function(){
   };
 
   function placeTeam(x,y){
-    IB.E.team.forEach((h,i)=>{h.x=x+(i-2)*0.6;h.y=y+0.4+i*0.12;h.tx=h.x;h.ty=h.y;h.target=null;h.fr=0;});
+    /* v2.4b: точка десанту — ЗАВЖДИ на прохідному досяжному тайлі. Раніше групу
+       кидало у геометричний центр села/табору: у Верховинці (67,157), Бистриці
+       (22,101) і Ясіні це середина забудови — тайл перекритий хатою, і група
+       «застрягала посеред вулиці». snapToReach веде на гарантований досяжний
+       тайл (BFS-аудит v2.2), кожен герой — на сусідній прохідний. */
+    const p=IB.snapToReach(IB.M.round(x),IB.M.round(y));
+    x=p.x;y=p.y;
+    IB.E.team.forEach((h,i)=>{
+      let hx=x+(i-2)*0.6,hy=y+0.4+i*0.12;
+      if(i>0&&!IB.walkable(hx,hy)){
+        const q=IB.snapToReach(IB.M.round(hx),IB.M.round(hy));
+        hx=q.x;hy=q.y;
+      }
+      h.x=hx;h.y=hy;h.tx=hx;h.ty=hy;h.target=null;h.fr=0;
+    });
+    const L=IB.E.team[0];L.x=x;L.y=y;L.tx=x;L.ty=y;L.target=null;L.fr=0;
   }
 
   function openTravels(){
@@ -6459,7 +6486,10 @@ IB.MAIN=(function(){
     mode='game';
     IB.$('int-exit').classList.add('hidden');
     const d=b.door;
-    IB.E.team.forEach((h,i)=>{h.x=d.x+0.5+(i-2)*0.7;h.y=d.y+1.2;h.tx=h.x;h.ty=h.y;h.target=null;h.fr=0;});
+    IB.E.team.forEach((h,i)=>{
+      let ex=d.x+0.5+(i-2)*0.7,ey=d.y+1.2;
+      if(!IB.walkable(ex,ey)){const q=IB.snapToReach(IB.M.round(ex),IB.M.round(ey));ex=q.x;ey=q.y;}
+      h.x=ex;h.y=ey;h.tx=ex;h.ty=ey;h.target=null;h.fr=0;});
     IB.toast('Вийшли на вулицю');
   }
   function interiorMove(dt){

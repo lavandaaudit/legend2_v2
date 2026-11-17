@@ -878,6 +878,12 @@ IB.loadGame=()=>{
       axetier:d.axetier||1,touristDone:d.touristDone||false,stamps:d.stamps||{},torch:d.torch!==false});
     IB.spawnTeam(d.spawn.x,d.spawn.y);
     for(const s of d.team||[]){const h=IB.E.team.find(x=>x.id===s.id);if(h){h.x=s.x;h.y=s.y;h.hp=s.hp;h.food=s.food;h.water=s.water;h.mood=s.mood;h.alc=s.alc;}}
+    /* v2.4b: РЯТУНОК старих сейвів — героя, збереженого на перекритому тайлі
+       (баг «застряв у Верховинці посеред вулиці»), витягуємо на досяжний тайл. */
+    for(const h of IB.E.team){
+      if(!IB.walkable(h.x,h.y)){const q=IB.snapToReach(IB.M.round(h.x),IB.M.round(h.y));
+        h.x=q.x;h.y=q.y;h.tx=q.x;h.ty=q.y;h.target=null;}
+    }
     IB.spawnVillagers();IB.spawnAnimals();IB.spawnFishes();
     IB.G.mode='game'; /* v1.2 fix: продовження запускало цикл гри */
     return true;

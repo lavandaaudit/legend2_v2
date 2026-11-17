@@ -1138,7 +1138,22 @@ IB.MAIN=(function(){
   };
 
   function placeTeam(x,y){
-    IB.E.team.forEach((h,i)=>{h.x=x+(i-2)*0.6;h.y=y+0.4+i*0.12;h.tx=h.x;h.ty=h.y;h.target=null;h.fr=0;});
+    /* v2.4b: точка десанту — ЗАВЖДИ на прохідному досяжному тайлі. Раніше групу
+       кидало у геометричний центр села/табору: у Верховинці (67,157), Бистриці
+       (22,101) і Ясіні це середина забудови — тайл перекритий хатою, і група
+       «застрягала посеред вулиці». snapToReach веде на гарантований досяжний
+       тайл (BFS-аудит v2.2), кожен герой — на сусідній прохідний. */
+    const p=IB.snapToReach(IB.M.round(x),IB.M.round(y));
+    x=p.x;y=p.y;
+    IB.E.team.forEach((h,i)=>{
+      let hx=x+(i-2)*0.6,hy=y+0.4+i*0.12;
+      if(i>0&&!IB.walkable(hx,hy)){
+        const q=IB.snapToReach(IB.M.round(hx),IB.M.round(hy));
+        hx=q.x;hy=q.y;
+      }
+      h.x=hx;h.y=hy;h.tx=hx;h.ty=hy;h.target=null;h.fr=0;
+    });
+    const L=IB.E.team[0];L.x=x;L.y=y;L.tx=x;L.ty=y;L.target=null;L.fr=0;
   }
 
   function openTravels(){
@@ -1336,7 +1351,10 @@ IB.MAIN=(function(){
     mode='game';
     IB.$('int-exit').classList.add('hidden');
     const d=b.door;
-    IB.E.team.forEach((h,i)=>{h.x=d.x+0.5+(i-2)*0.7;h.y=d.y+1.2;h.tx=h.x;h.ty=h.y;h.target=null;h.fr=0;});
+    IB.E.team.forEach((h,i)=>{
+      let ex=d.x+0.5+(i-2)*0.7,ey=d.y+1.2;
+      if(!IB.walkable(ex,ey)){const q=IB.snapToReach(IB.M.round(ex),IB.M.round(ey));ex=q.x;ey=q.y;}
+      h.x=ex;h.y=ey;h.tx=ex;h.ty=ey;h.target=null;h.fr=0;});
     IB.toast('Вийшли на вулицю');
   }
   function interiorMove(dt){

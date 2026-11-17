@@ -458,6 +458,11 @@ IB.V5_ANCH={
   bench:{ax:11,ay:12},barrels:{ax:10,ay:13},crate:{ax:10,ay:9},busstop:{ax:13,ay:13},
   swing:{ax:12,ay:16},slide:{ax:10,ay:18},dead:{ax:11,ay:33},
 };
+/* v2.4b: дрібні будІвлі бІльші (відгук «є малі будІвлі — збільшуй»): старі
+   хати-курени, стодола, сільрада, гараж, ларьок і крамниця малюються у
+   масштабі села; якорі масштабуються разом, колізії footprint не чіпаємо. */
+IB.V5_SCL={hist2:1.5,hist2b:1.5,hist2c:1.5,hist3:1.35,khrus:1.45,
+  bld_garage_0:1.4,shop2:1.25,bld_shop1_0:1.15};
 function bldPick(b){
   if(b.img)return b.img;                       /* v1.4: явний актив у даних світу */
   if(b.type==='shop')return 'bld_shop1_0';
@@ -523,11 +528,12 @@ function drawBuilding(g,b,ox,oy,dt){
   /* ---------- ДАЧІ/ХАТИ/КРАМНИЦЯ/КОРЧМА — PNG ПЕРШОЇ ЧАСТИНИ ---------- */
   if(im){
     const an=IB.V5_ANCH[name];                 /* v1.4: точний якір котеджів v5 */
-    if(an)g.drawImage(im,px-an.ax,py-an.ay);
-    else g.drawImage(im,px-im.width/2,py-im.height+6);
+    const scl=(IB.V5_SCL&&IB.V5_SCL[name])||1; /* v2.4b: дрібні будІвлі бІльші */
+    if(an)g.drawImage(im,px-an.ax*scl,py-an.ay*scl,im.width*scl,im.height*scl);
+    else g.drawImage(im,px-im.width*scl/2,py-im.height*scl+6,im.width*scl,im.height*scl);
     /* вікна світяться уночі — теплі плями на фасаді */
     if(lit){
-      const wh=im.height;
+      const wh=im.height*scl;
       IB.P(g,px-20,py-wh*0.44,6,7,'#f0c060');
       IB.P(g,px+13,py-wh*0.44,6,7,'#f0c060');
       IB.O(g,px-17,py-wh*0.44+3,8,9,'rgba(240,180,60,0.20)');
@@ -535,7 +541,7 @@ function drawBuilding(g,b,ox,oy,dt){
     }
     /* димар з димом для хат */
     if(b.type==='house'&&IB.M.sin(performance.now()*0.0011+b.x)>0){
-      const chy=py-(an?an.ay:im.height-6)+10;
+      const chy=py-(an?an.ay*scl:im.height*scl-6)+10;
       g.fillStyle='rgba(200,205,210,0.25)';
       IB.O(g,px+20,chy-4-((performance.now()*0.008)%8),3,3,'rgba(200,205,210,0.22)');
       IB.O(g,px+22,chy-10-((performance.now()*0.006)%10),2.4,2.4,'rgba(200,205,210,0.16)');
@@ -982,28 +988,28 @@ function drawCar(g,c,ox,oy,dt){
   const x=s.x+ox+16,y=s.y+oy+6;
   if(c.type==='van'){
     /* білий фургон групи (спогад про Київ) — процедурний */
-    IB.O(g,x+4,y,20,8,'#00000035');
-    IB.isoBox(g,x,y,30,16,9,c.c,IB.shade(c.c,-0.18),IB.shade(c.c,-0.3));
-    IB.P(g,x+6,y-4,18,5,'#2a3e5c');
-    IB.P(g,x+7,y-3,4,3,'#8ab8d8');IB.P(g,x+13,y-3,4,3,'#8ab8d8');IB.P(g,x+19,y-3,4,3,'#8ab8d8');
-    IB.P(g,x+4,y+3,2,3,IB.shade(c.c,-0.35));IB.P(g,x+24,y+3,2,3,IB.shade(c.c,-0.35));
-    IB.P(g,x+8,y+1,14,3,'#c83828');
+    IB.O(g,x+6,y,30,11,'#00000035');
+    IB.isoBox(g,x,y,44,23,13,c.c,IB.shade(c.c,-0.18),IB.shade(c.c,-0.3));
+    IB.P(g,x+9,y-6,27,7,'#2a3e5c');
+    IB.P(g,x+11,y-5,6,4,'#8ab8d8');IB.P(g,x+20,y-5,6,4,'#8ab8d8');IB.P(g,x+29,y-5,6,4,'#8ab8d8');
+    IB.P(g,x+6,y+5,3,4,IB.shade(c.c,-0.35));IB.P(g,x+36,y+5,3,4,IB.shade(c.c,-0.35));
+    IB.P(g,x+12,y+2,21,4,'#c83828');            /* v2.4b: ван бІльший */
     return;
   }
   const m=c.model&&IB.img('car_'+c.model+'_se')?c.model:null;
   const im=m?IB.img('car_'+m+'_se'):null;
   if(im){
     /* PNG-машини v5 (ВАЗ, Lanos, SUV, Truck) — вид SE, для лівого напрямку дзеркало */
-    const sc=0.42;
+    const sc=0.62;                     /* v2.4b: машини бІльші (було 0.42) */
     const src=(c.dir==='l')?(IB.mirror('car_'+m+'_se')||im):im;
     g.fillStyle='#00000035';g.beginPath();g.ellipse(x,y-1,im.width*sc*0.5,im.height*sc*0.28,0,0,7);g.fill();
     g.drawImage(src,x-im.width*sc/2,y-im.height*sc+4,im.width*sc,im.height*sc);
     /* фара/габарити вночі + БІП-БІП спалах */
     if(IB.nightFactor()>0.4){
       g.fillStyle='rgba(248,240,190,0.8)';
-      IB.O(g,x+(c.dir==='l'?-14:14),y-3,1.6,1.6,'rgba(248,240,190,0.8)');
+      IB.O(g,x+(c.dir==='l'?-im.width*sc*0.2:im.width*sc*0.2),y-4,2.2,2.2,'rgba(248,240,190,0.8)');
     }
-    if(c.honkT>4.4){g.font='9px monospace';g.fillStyle='#f0d050';g.fillText('БІП!',x-8,y-14);}
+    if(c.honkT>4.4){g.font='10px monospace';g.fillStyle='#f0d050';g.fillText('БІП!',x-9,y-im.height*sc-6);}
     return;
   }
   /* фолбек — процедурний бокс */
