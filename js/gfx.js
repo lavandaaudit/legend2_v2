@@ -99,6 +99,18 @@ IB.renderWorld=(g,dt)=>{
     if(cc.dry)draws.push({d:c.x+c.y+2,f:drawDry,a:{x:c.x+2.5,y:c.y+3}});
     if(cc.farm.built)draws.push({d:c.x+c.y+2.2,f:drawFarm,a:{x:c.x+3,y:c.y+2,stage:cc.farm.stage,ready:cc.farm.ready,planted:cc.farm.planted}});
   }
+  /* v2.1: похідні табори (табір будь-де) */
+  for(const c of (IB.G.wildCamps||[])){
+    const cc=IB.G.camps[c.id];
+    if(!cc)continue;
+    if(IB.dist(c.x,c.y,cam.x,cam.y)>30)continue;
+    if(cc.fire)draws.push({d:c.x+c.y-0.6,f:drawFire,a:{x:c.x,y:c.y,fuel:cc.fuel}});
+    if(cc.tent)draws.push({d:c.x+c.y+1.5,f:drawTent,a:{x:c.x-2.5,y:c.y-1.5}});
+    if(cc.well)draws.push({d:c.x+c.y+1.6,f:drawCampWell,a:{x:c.x+2.5,y:c.y-1.5}});
+    if(cc.table)draws.push({d:c.x+c.y+1.8,f:drawTable,a:{x:c.x-1.5,y:c.y+2}});
+    if(cc.dry)draws.push({d:c.x+c.y+2,f:drawDry,a:{x:c.x+2,y:c.y+2.5}});
+    if(cc.farm&&cc.farm.built)draws.push({d:c.x+c.y+2.2,f:drawFarm,a:{x:c.x+2.5,y:c.y+1.5,stage:cc.farm.stage,ready:cc.farm.ready,planted:cc.farm.planted}});
+  }
   for(const e of IB.E.team)draws.push({d:e.x+e.y+0.3,f:drawHero,a:e});
   for(const n of IB.E.npcs)draws.push({d:n.x+n.y,f:drawNpc,a:n});
   for(const a of IB.E.animals)draws.push({d:a.x+a.y,f:drawAnimal,a});
@@ -138,7 +150,7 @@ IB.renderWorld=(g,dt)=>{
   if(nf>0.05){
     g.fillStyle='rgba(8,14,26,'+(nf*0.55)+')';g.fillRect(0,0,480,336);
     /* світло вогнів */
-    for(const c of W.CAMPS){
+    for(const c of W.CAMPS.concat(IB.G.wildCamps||[])){
       const cc=IB.G.camps[c.id];
       if(cc&&cc.fire&&cc.fuel>0){
         const s=tileScreen(c.x,c.y);
@@ -1245,6 +1257,13 @@ IB.drawBigMap=(canvas)=>{
     g.setLineDash([]);
     g.fillStyle='#f0d050';
     IB.PA(g,[[X(r.x),Y(r.y)-6],[X(r.x)-4,Y(r.y)+2],[X(r.x)+4,Y(r.y)+2]],'#f0d050');
+  }
+  /* v2.1: похідні табори — жовті намети на карті */
+  for(const c of (IB.G.wildCamps||[])){
+    IB.PA(g,[[X(c.x),Y(c.y)-6],[X(c.x)-4.5,Y(c.y)+3],[X(c.x)+4.5,Y(c.y)+3]],'#ff8c38');
+    g.strokeStyle='#1a1208';g.lineWidth=1;
+    g.beginPath();g.moveTo(X(c.x),Y(c.y)-6);g.lineTo(X(c.x)-4.5,Y(c.y)+3);g.lineTo(X(c.x)+4.5,Y(c.y)+3);g.closePath();g.stroke();
+    g.fillStyle='#1a1208';g.fillRect(X(c.x)-1,Y(c.y)-1,2,2);
   }
   /* інсет ШАЦЬКІ ОЗЕРА */
   const IX=4,IY=4,IW=88,IH=56;

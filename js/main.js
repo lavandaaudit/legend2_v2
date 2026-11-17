@@ -27,7 +27,7 @@ IB.MAIN=(function(){
   const KEY={KeyW:'w',ArrowUp:'up',KeyS:'s',ArrowDown:'down',KeyA:'a',ArrowLeft:'left',KeyD:'d',ArrowRight:'right',
     ShiftLeft:'shift',ShiftRight:'shift',KeyE:'e',KeyM:'m',KeyQ:'q',KeyI:'i',KeyV:'fs',KeyP:'p',KeyG:'grp',KeyJ:'jrnl',
     KeyT:'t',Tab:'tab',Escape:'esc',Enter:'enter',Space:'space',Digit1:'1',Digit2:'2',Digit3:'3',Digit4:'4',
-    KeyF:'f',KeyR:'srch'};
+    KeyF:'f',KeyR:'srch',KeyB:'camp'};
   const keys={},pressed={};
 
   window.addEventListener('keydown',ev=>{
@@ -45,7 +45,7 @@ IB.MAIN=(function(){
   function bindTouch(){
     const pad=IB.$('dpad');if(!pad)return;
     const knob=IB.$('dpad-knob');
-    const btns={a:'e',h:'shift',c:'tab',d:'m',g:'grp',q:'q',t:'t',f:'f',r:'srch'};
+    const btns={a:'e',h:'shift',c:'tab',d:'m',g:'grp',q:'q',t:'t',f:'f',r:'srch',b:'camp'};
     document.querySelectorAll('[data-tk]').forEach(el=>{
       const k=btns[el.dataset.tk];
       const toggleMode=k==='shift';
@@ -172,7 +172,7 @@ IB.MAIN=(function(){
     IB.journalAdd('🚐','Частина 2 почалася. Після Києва група дісталася Карпат. Перший кемпінг — «Старе Вогнище».');
     IB.journalAdd('👥','Група з Києва: ЛЕГЕНДА (лідер), TOXIC (кухар), PABLO (рибалка), DIIN (майстер), ROCK (весельчак).');
     IB.banner('КАРПАТИ. ДЕНЬ ПЕРШИЙ.');
-    IB.toast('E — дія • M — багаж • TAB — карта • Q — гулянка • R — ШУКАТИ • F — фонарики','gold');
+    IB.toast('E — дія • M — багаж • TAB — карта • Q — гулянка • R — ШУКАТИ • F — фонарики • B — ТАБІР','gold');
   }
   function startGame(){
     IB.$('title').classList.add('hidden');
@@ -809,6 +809,7 @@ IB.MAIN=(function(){
         '</div>';
     });
     html+='<div class="pcard"><b>ГУЛЯНКА (Q):</b><span class="ds"> КОЛИ ЗАВГОДНО (v1.5) — головне: живе вогнище з дровами і вся група поруч. Напитки (≥6) і закуска (≥4) роблять гулянку дужчою — без них буде «суха». Вранці — похмілля до 12:00.</span></div>';
+    html+='<div class="pcard"><b>⛺ ТАБІР БУДЬ-ДЕ (B):</b><span class="ds"> кнопка ⛺ ТАБІР ставить похідний табір на ЛЮБОМУ рівному місці (не вода/скелі/село): усі поруч → намет стоїть одразу, майданчик розчищено. Вогнище, стіл+казан, колодязь, грядка, сушилка — E біля табору → меню будівництва. Сон у наметі, гулянка, рецепти, тепло і світло вогню — все як у кемпінгах. Табори видно на карті (TAB) жовтими наметами і збережено у сейві.</span></div>';
     html+='<div class="pcard"><b>✦ «5 Г»:</b><span class="ds"> у тебе пакетиків: '+IB.G.inv.trip5+'. Ніч П\'яти Зірок — у темряві, зі всією групою.</span></div>';
     html+='<div class="prow click" data-torch="1"><span class="nm">🔦 ФОНАРИКИ: '+(IB.G.torch!==false?'УВІМКНЕНО (світять уночі, кажани прилітають)':'ВИМКНЕНО (темно, кажани не летять)')+'</span><span class="ds">кнопка ФОНАР / клавіша F</span><span class="'+(IB.G.torch!==false?'ok':'no')+'">'+'перемкнути'+'</span></div>';
     html+='<div class="prow click" data-srch="1"><span class="nm">🔎 ШУКАТИ ЗАГУБЛЕНИХ</span><span class="ds">група кричить — загублені йдуть на голос</span><span class="ok">R</span></div>';
@@ -1003,6 +1004,7 @@ IB.MAIN=(function(){
     if(consume('q'))IB.startParty();
     if(consume('srch'))IB.startSearch();
     if(consume('f'))IB.toggleTorch();
+    if(consume('camp'))IB.makeCamp();
     if(consume('1'))hotbar('1');
     if(consume('2'))hotbar('2');
     if(consume('3'))hotbar('3');

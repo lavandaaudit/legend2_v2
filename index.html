@@ -359,7 +359,7 @@ body.fakefs #game{width:100%;height:100%;object-fit:contain}
         <b>КАРТРИДЖ 24 MEG — ЧАСТИНА 2</b>
         Після останнього сигналу Києва ЛЕГЕНДА зібрав свою п'ятірку — TOXIC, PABLO, DIIN, ROCK — і поїхав у КАРПАТИ починати нове життя. Тут немає заражених. Тут інше: гори й полонини, річка Черемош і Лазурне озеро, три села з крамницями та корчмою, кемпінги, ферма, рибалка, гриби й ягоди, погода від сонця до хуртовини, легенди й артефакти Довбуша — і ГУЛЯНКИ на 8 ігрових годин біля вогнища.
         <b>Механіки:</b> група з 5 героїв (кожен з талантом), їжа/вода/енергія/настрій — без їжі й води герої сповільняться; збір ресурсів (дерева, ягоди, гриби, трави, риба), крафт і готування (юшка, банош, смажена риба, наливка), будівництво табору (вогнище, намет, колодязь, грядка-ферма, стіл, сушилка), економіка: продавай у крамниці, купуй бринзу й напитки в корчмі, випадкові події (зниклий турист, замерзлий товариш, нічні байки), 7 артефактів Карпат, Мольфар у лісовій хаті, і легендарна механіка «5 Г» — ніч п'яти зірок: кольори плывуть, і у кожного героя СВІЙ тріп.
-        <span class="cart-warn">Керування: WASD/стрілки — рух, SHIFT — біг, E — дія (збір, рибалка, двері, діалоги, плавання), M — багаж і крафт, TAB — карта (клік = маршрут), Q — гулянка (коли завгодно, якщо вогнище палає і вся група тут). R — ШУКАТИ загублених (група кричить — вони йдуть на голос). F — фонарики на ніч (кажани летять на світло). 1-4 — їсти/пити/спати/відпочити • J — журнал • G — група • T — МАНДРІВКИ (сходження на вершини). ESC — пауза. Мобільно: джойстик + кнопки E/RUN/MAP/BAG/ГРУПА/ТРЕКИ/ШУКАТИ/ФОНАР/ГУЛЯНКА. Увага: у лісі РИСЬ, над групою КРУКИ, уночі на фонарики — КАЖАНИ.</span>
+        <span class="cart-warn">Керування: WASD/стрілки — рух, SHIFT — біг, E — дія (збір, рибалка, двері, діалоги, плавання), M — багаж і крафт, TAB — карта (клік = маршрут), Q — гулянка (коли завгодно, якщо вогнище палає і вся група тут). R — ШУКАТИ загублених (група кричить — вони йдуть на голос). F — фонарики на ніч (кажани летять на світло). B — ТАБІР будь-де: похідний намет на лугах, у лісі чи на полонині (E біля табору → вогнище і будови). 1-4 — їсти/пити/спати/відпочити • J — журнал • G — група • T — МАНДРІВКИ (сходження на вершини). ESC — пауза. Мобільно: джойстик + кнопки E/RUN/MAP/BAG/ГРУПА/ТРЕКИ/ШУКАТИ/ФОНАР/ТАБІР/ГУЛЯНКА. Увага: у лісі РИСЬ, над групою КРУКИ, уночі на фонарики — КАЖАНИ.</span>
       </div>
     </div>
 
@@ -379,6 +379,7 @@ body.fakefs #game{width:100%;height:100%;object-fit:contain}
           <div class="tbn" data-tk="t">ТРЕКИ</div>
           <div class="tbn" data-tk="r">🔎 ШУКАТИ</div>
           <div class="tbn" data-tk="f">🔦 ФОНАР</div>
+          <div class="tbn q" data-tk="b">⛺ ТАБІР</div>
           <div class="tbn q" data-tk="q">ГУЛЯНКА</div>
         </div>
 
@@ -1983,9 +1984,12 @@ IB.nearestWater=(x,y,r)=>{
   }
   return best;
 };
+/* v2.1: табір будь-де — nearCamp бачить і походні табори (найближчий перемагає) */
 IB.nearCamp=(x,y,r=4)=>{
-  for(const c of IB.W.CAMPS)if(IB.dist(x,y,c.x,c.y)<=IB.M.max(r,c.r))return c;
-  return null;
+  let best=null,bd=1e9;
+  for(const c of IB.W.CAMPS){const d=IB.dist(x,y,c.x,c.y);if(d<=IB.M.max(r,c.r)&&d<bd){bd=d;best=c;}}
+  for(const c of (IB.G.wildCamps||[])){const d=IB.dist(x,y,c.x,c.y);if(d<=IB.M.max(r,c.r||4.5)&&d<bd){bd=d;best=c;}}
+  return best;
 };
 
 /* ==================== v1.5: ЗВІРІ — РИСЬ (загроза), КРУКИ (налітають), КАЖАНИ (на фонарики) ==================== */
@@ -2187,6 +2191,8 @@ IB.G={mode:'boot',t:8,day:1,money:25,
   quests:{done:[],active:'q1',side:{}},
   arts:[],journal:[],album:[],stamps:{},   /* v1.4: штампи маршрутів {routeId:{d,name}} */
   camps:{},   /* c1..c5 → {fire,fuel,tent,well,farm:{built,stage,planted,ready},table,dry} */
+  wildCamps:[],   /* v2.1: походні табори будь-де → {id,name,x,y,r,wild} */
+  wildCamps:[],   /* v2.1: походні табори будь-де → {id,name,x,y,r,wild} */
   party:{active:false,t:0,hour:0,scenes:0,at:null},
   trip:{active:false,t:0,hour:0,at:null},
   hangover:0,vision:0,axetier:1,
@@ -2367,6 +2373,43 @@ IB.sleepTillMorning=(inTent)=>{
   IB.journalAdd('🌙','Ніч у таборі'+(inTent?' (у наметі)':' (під зорями)')+'. Відпочили'+(inTent?' як слід':'.'));
 };
 
+/* ---------- v2.1: ТАБІР БУДЬ-ДЕ (кнопка ⛺ ТАБІР / клавіша B) ---------- */
+IB.makeCamp=()=>{
+  if(IB.G.mode!=='game')return;
+  const L=IB.E.team[0];
+  /* вся група має бути поруч */
+  const far=IB.E.team.filter(m=>IB.dist(m.x,m.y,L.x,L.y)>9);
+  if(far.length){IB.toast('Хтось відбився ('+far.map(m=>m.name).join(', ')+') — натисни ШУКАТИ (R)','red');IB.SFX.alert();return;}
+  const x=L.x,y=L.y;
+  const terr=IB.W.at(x,y);
+  if(terr===0){IB.toast('У воді табір не поставиш — вийди на берег','red');return;}
+  if(terr===9||terr===10){IB.toast('Скелі й урвища — не місце для намету','red');return;}
+  /* не в селі: там корчма і хати */
+  const vil=(IB.W.VILLAGES||[]).find(v=>x>=v.x-1&&x<v.x+v.w+1&&y>=v.y-1&&y<v.y+v.h+1);
+  if(vil){IB.toast('У селі ночуй у корчмі або хаті — табір став на лугах чи в лісі','red');return;}
+  /* не дублюємо кемпінги і свої табори */
+  for(const c of IB.W.CAMPS)if(IB.dist(x,y,c.x,c.y)<c.r+4){IB.toast('Тут уже кемпінг «'+c.name+'» — натисни E біля вогнища','red');return;}
+  if((IB.G.wildCamps||[]).some(c=>IB.dist(x,y,c.x,c.y)<10)){IB.toast('Походний табір уже поруч — шукай жовтий намет','red');return;}
+  if(!IB.G.wildCamps)IB.G.wildCamps=[];
+  /* розчищення майданчика: прибрати дерева/кущі/пеньки в радіусі 2 (гриби й «5 г» лишається) */
+  for(let i=IB.W.props.length-1;i>=0;i--){
+    const p=IB.W.props[i];
+    if(p.type==='mush'||p.type==='triph'||p.type==='flower'||p.type==='herb')continue;
+    if(IB.M.abs(p.x-x)<=3&&IB.M.abs(p.y-y)<=3){IB.W.props.splice(i,1);IB.W.grid.delete(p.y*IB.W.W+p.x);}
+  }
+  const n=IB.G.wildCamps.length+1;
+  const zone=IB.W.zoneAt?IB.W.zoneAt(x,y):'КАРПАТИ';
+  const name='ПОХІДНИЙ ТАБІР №'+n+' — '+zone;
+  const id='w'+n;
+  IB.G.wildCamps.push({id:id,name:name,x:x,y:y,r:4.5,wild:true});
+  IB.G.camps[id]={fire:false,fuel:0,tent:true,well:false,table:false,dry:false,farm:{built:false,stage:0,planted:false,ready:false,grow:0}};
+  IB.SFX.build();
+  IB.banner('⛺ ТАБІР ПОСТАВЛЕНО');
+  IB.journalAdd('⛺','Табір будь-де: група розклала «'+name+'». Вогнище — E біля табору.');
+  IB.toast('Намет стоїть! Вогнище: E біля табору → «Збудувати: Вогнище»');
+  IB.saveGame();
+};
+
 /* ---------- ГУЛЯНКА (8 ігрових годин) ---------- */
 IB.PARTY_SCENES=[
   {i:'🍻',t:'ТОСТ ЛЕГЕНДИ',x:'Лєгенда підняв кружку: «За тих, хто в місті! За нову дорогу!» Група гуркнула кружками так, що сполохали зграї в смереках.'},
@@ -2392,7 +2435,7 @@ IB.PARTY_SCENES=[
 IB.canParty=()=>{
   const L=IB.E.team[0];
   const c=IB.G.nearCamp(L.x,L.y,7);
-  if(!c)return {ok:false,why:'Треба бути в таборі (кемпінг) з вогнищем'};
+  if(!c)return {ok:false,why:'Треба бути в таборі (кемпінг або свій похідний табір) з вогнищем'};
   const cc=IB.G.camps[c.id];
   if(!cc.fire||cc.fuel<=0)return {ok:false,why:'Вогнище не палає — підкинь дров у вогонь (E у таборі)'};
   /* вся група поруч */
@@ -2885,7 +2928,7 @@ IB.saveGame=()=>{
   try{
     const team=IB.E.team.map(h=>({id:h.id,x:h.x,y:h.y,hp:h.hp,food:h.food,water:h.water,mood:h.mood,alc:h.alc}));
     const data={v:1,day:IB.G.day,t:IB.G.t,money:IB.G.money,inv:IB.G.inv,quests:IB.G.quests,arts:IB.G.arts,
-      camps:IB.G.camps,journal:IB.G.journal.slice(0,40),flags:IB.G.flags,stats:IB.G.stats,
+      camps:IB.G.camps,wildCamps:IB.G.wildCamps||[],journal:IB.G.journal.slice(0,40),flags:IB.G.flags,stats:IB.G.stats,
       wx:IB.G.wx,hangover:IB.G.hangover,vision:IB.G.vision,axetier:IB.G.axetier,album:IB.G.album,team,
       stamps:IB.G.stamps||{},torch:IB.G.torch!==false,
       spawn:{x:IB.E.team[0].x,y:IB.E.team[0].y},touristDone:IB.G.touristDone};
@@ -2898,7 +2941,7 @@ IB.loadGame=()=>{
     const raw=localStorage.getItem('vlegend_karpaty');
     if(!raw)return false;
     const d=JSON.parse(raw);
-    Object.assign(IB.G,{day:d.day,t:d.t,money:d.money,inv:d.inv,quests:d.quests,arts:d.arts,camps:d.camps,
+    Object.assign(IB.G,{day:d.day,t:d.t,money:d.money,inv:d.inv,quests:d.quests,arts:d.arts,camps:d.camps,wildCamps:d.wildCamps||[],
       journal:d.journal||[],flags:d.flags,stats:d.stats,wx:d.wx,album:d.album||[],hangover:d.hangover||0,vision:d.vision||0,
       axetier:d.axetier||1,touristDone:d.touristDone||false,stamps:d.stamps||{},torch:d.torch!==false});
     IB.spawnTeam(d.spawn.x,d.spawn.y);
@@ -3057,6 +3100,18 @@ IB.renderWorld=(g,dt)=>{
     if(cc.dry)draws.push({d:c.x+c.y+2,f:drawDry,a:{x:c.x+2.5,y:c.y+3}});
     if(cc.farm.built)draws.push({d:c.x+c.y+2.2,f:drawFarm,a:{x:c.x+3,y:c.y+2,stage:cc.farm.stage,ready:cc.farm.ready,planted:cc.farm.planted}});
   }
+  /* v2.1: похідні табори (табір будь-де) */
+  for(const c of (IB.G.wildCamps||[])){
+    const cc=IB.G.camps[c.id];
+    if(!cc)continue;
+    if(IB.dist(c.x,c.y,cam.x,cam.y)>30)continue;
+    if(cc.fire)draws.push({d:c.x+c.y-0.6,f:drawFire,a:{x:c.x,y:c.y,fuel:cc.fuel}});
+    if(cc.tent)draws.push({d:c.x+c.y+1.5,f:drawTent,a:{x:c.x-2.5,y:c.y-1.5}});
+    if(cc.well)draws.push({d:c.x+c.y+1.6,f:drawCampWell,a:{x:c.x+2.5,y:c.y-1.5}});
+    if(cc.table)draws.push({d:c.x+c.y+1.8,f:drawTable,a:{x:c.x-1.5,y:c.y+2}});
+    if(cc.dry)draws.push({d:c.x+c.y+2,f:drawDry,a:{x:c.x+2,y:c.y+2.5}});
+    if(cc.farm&&cc.farm.built)draws.push({d:c.x+c.y+2.2,f:drawFarm,a:{x:c.x+2.5,y:c.y+1.5,stage:cc.farm.stage,ready:cc.farm.ready,planted:cc.farm.planted}});
+  }
   for(const e of IB.E.team)draws.push({d:e.x+e.y+0.3,f:drawHero,a:e});
   for(const n of IB.E.npcs)draws.push({d:n.x+n.y,f:drawNpc,a:n});
   for(const a of IB.E.animals)draws.push({d:a.x+a.y,f:drawAnimal,a});
@@ -3096,7 +3151,7 @@ IB.renderWorld=(g,dt)=>{
   if(nf>0.05){
     g.fillStyle='rgba(8,14,26,'+(nf*0.55)+')';g.fillRect(0,0,480,336);
     /* світло вогнів */
-    for(const c of W.CAMPS){
+    for(const c of W.CAMPS.concat(IB.G.wildCamps||[])){
       const cc=IB.G.camps[c.id];
       if(cc&&cc.fire&&cc.fuel>0){
         const s=tileScreen(c.x,c.y);
@@ -4204,6 +4259,13 @@ IB.drawBigMap=(canvas)=>{
     g.fillStyle='#f0d050';
     IB.PA(g,[[X(r.x),Y(r.y)-6],[X(r.x)-4,Y(r.y)+2],[X(r.x)+4,Y(r.y)+2]],'#f0d050');
   }
+  /* v2.1: похідні табори — жовті намети на карті */
+  for(const c of (IB.G.wildCamps||[])){
+    IB.PA(g,[[X(c.x),Y(c.y)-6],[X(c.x)-4.5,Y(c.y)+3],[X(c.x)+4.5,Y(c.y)+3]],'#ff8c38');
+    g.strokeStyle='#1a1208';g.lineWidth=1;
+    g.beginPath();g.moveTo(X(c.x),Y(c.y)-6);g.lineTo(X(c.x)-4.5,Y(c.y)+3);g.lineTo(X(c.x)+4.5,Y(c.y)+3);g.closePath();g.stroke();
+    g.fillStyle='#1a1208';g.fillRect(X(c.x)-1,Y(c.y)-1,2,2);
+  }
   /* інсет ШАЦЬКІ ОЗЕРА */
   const IX=4,IY=4,IW=88,IH=56;
   g.fillStyle='rgba(8,14,12,0.85)';g.fillRect(IX,IY,IW,IH);
@@ -4380,7 +4442,7 @@ IB.MAIN=(function(){
   const KEY={KeyW:'w',ArrowUp:'up',KeyS:'s',ArrowDown:'down',KeyA:'a',ArrowLeft:'left',KeyD:'d',ArrowRight:'right',
     ShiftLeft:'shift',ShiftRight:'shift',KeyE:'e',KeyM:'m',KeyQ:'q',KeyI:'i',KeyV:'fs',KeyP:'p',KeyG:'grp',KeyJ:'jrnl',
     KeyT:'t',Tab:'tab',Escape:'esc',Enter:'enter',Space:'space',Digit1:'1',Digit2:'2',Digit3:'3',Digit4:'4',
-    KeyF:'f',KeyR:'srch'};
+    KeyF:'f',KeyR:'srch',KeyB:'camp'};
   const keys={},pressed={};
 
   window.addEventListener('keydown',ev=>{
@@ -4398,7 +4460,7 @@ IB.MAIN=(function(){
   function bindTouch(){
     const pad=IB.$('dpad');if(!pad)return;
     const knob=IB.$('dpad-knob');
-    const btns={a:'e',h:'shift',c:'tab',d:'m',g:'grp',q:'q',t:'t',f:'f',r:'srch'};
+    const btns={a:'e',h:'shift',c:'tab',d:'m',g:'grp',q:'q',t:'t',f:'f',r:'srch',b:'camp'};
     document.querySelectorAll('[data-tk]').forEach(el=>{
       const k=btns[el.dataset.tk];
       const toggleMode=k==='shift';
@@ -4525,7 +4587,7 @@ IB.MAIN=(function(){
     IB.journalAdd('🚐','Частина 2 почалася. Після Києва група дісталася Карпат. Перший кемпінг — «Старе Вогнище».');
     IB.journalAdd('👥','Група з Києва: ЛЕГЕНДА (лідер), TOXIC (кухар), PABLO (рибалка), DIIN (майстер), ROCK (весельчак).');
     IB.banner('КАРПАТИ. ДЕНЬ ПЕРШИЙ.');
-    IB.toast('E — дія • M — багаж • TAB — карта • Q — гулянка • R — ШУКАТИ • F — фонарики','gold');
+    IB.toast('E — дія • M — багаж • TAB — карта • Q — гулянка • R — ШУКАТИ • F — фонарики • B — ТАБІР','gold');
   }
   function startGame(){
     IB.$('title').classList.add('hidden');
@@ -5162,6 +5224,7 @@ IB.MAIN=(function(){
         '</div>';
     });
     html+='<div class="pcard"><b>ГУЛЯНКА (Q):</b><span class="ds"> КОЛИ ЗАВГОДНО (v1.5) — головне: живе вогнище з дровами і вся група поруч. Напитки (≥6) і закуска (≥4) роблять гулянку дужчою — без них буде «суха». Вранці — похмілля до 12:00.</span></div>';
+    html+='<div class="pcard"><b>⛺ ТАБІР БУДЬ-ДЕ (B):</b><span class="ds"> кнопка ⛺ ТАБІР ставить похідний табір на ЛЮБОМУ рівному місці (не вода/скелі/село): усі поруч → намет стоїть одразу, майданчик розчищено. Вогнище, стіл+казан, колодязь, грядка, сушилка — E біля табору → меню будівництва. Сон у наметі, гулянка, рецепти, тепло і світло вогню — все як у кемпінгах. Табори видно на карті (TAB) жовтими наметами і збережено у сейві.</span></div>';
     html+='<div class="pcard"><b>✦ «5 Г»:</b><span class="ds"> у тебе пакетиків: '+IB.G.inv.trip5+'. Ніч П\'яти Зірок — у темряві, зі всією групою.</span></div>';
     html+='<div class="prow click" data-torch="1"><span class="nm">🔦 ФОНАРИКИ: '+(IB.G.torch!==false?'УВІМКНЕНО (світять уночі, кажани прилітають)':'ВИМКНЕНО (темно, кажани не летять)')+'</span><span class="ds">кнопка ФОНАР / клавіша F</span><span class="'+(IB.G.torch!==false?'ok':'no')+'">'+'перемкнути'+'</span></div>';
     html+='<div class="prow click" data-srch="1"><span class="nm">🔎 ШУКАТИ ЗАГУБЛЕНИХ</span><span class="ds">група кричить — загублені йдуть на голос</span><span class="ok">R</span></div>';
@@ -5356,6 +5419,7 @@ IB.MAIN=(function(){
     if(consume('q'))IB.startParty();
     if(consume('srch'))IB.startSearch();
     if(consume('f'))IB.toggleTorch();
+    if(consume('camp'))IB.makeCamp();
     if(consume('1'))hotbar('1');
     if(consume('2'))hotbar('2');
     if(consume('3'))hotbar('3');

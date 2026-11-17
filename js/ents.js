@@ -363,9 +363,12 @@ IB.nearestWater=(x,y,r)=>{
   }
   return best;
 };
+/* v2.1: табір будь-де — nearCamp бачить і походні табори (найближчий перемагає) */
 IB.nearCamp=(x,y,r=4)=>{
-  for(const c of IB.W.CAMPS)if(IB.dist(x,y,c.x,c.y)<=IB.M.max(r,c.r))return c;
-  return null;
+  let best=null,bd=1e9;
+  for(const c of IB.W.CAMPS){const d=IB.dist(x,y,c.x,c.y);if(d<=IB.M.max(r,c.r)&&d<bd){bd=d;best=c;}}
+  for(const c of (IB.G.wildCamps||[])){const d=IB.dist(x,y,c.x,c.y);if(d<=IB.M.max(r,c.r||4.5)&&d<bd){bd=d;best=c;}}
+  return best;
 };
 
 /* ==================== v1.5: ЗВІРІ — РИСЬ (загроза), КРУКИ (налітають), КАЖАНИ (на фонарики) ==================== */

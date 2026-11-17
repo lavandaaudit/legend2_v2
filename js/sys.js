@@ -18,6 +18,8 @@ IB.G={mode:'boot',t:8,day:1,money:25,
   quests:{done:[],active:'q1',side:{}},
   arts:[],journal:[],album:[],stamps:{},   /* v1.4: штампи маршрутів {routeId:{d,name}} */
   camps:{},   /* c1..c5 → {fire,fuel,tent,well,farm:{built,stage,planted,ready},table,dry} */
+  wildCamps:[],   /* v2.1: походні табори будь-де → {id,name,x,y,r,wild} */
+  wildCamps:[],   /* v2.1: походні табори будь-де → {id,name,x,y,r,wild} */
   party:{active:false,t:0,hour:0,scenes:0,at:null},
   trip:{active:false,t:0,hour:0,at:null},
   hangover:0,vision:0,axetier:1,
@@ -198,6 +200,43 @@ IB.sleepTillMorning=(inTent)=>{
   IB.journalAdd('🌙','Ніч у таборі'+(inTent?' (у наметі)':' (під зорями)')+'. Відпочили'+(inTent?' як слід':'.'));
 };
 
+/* ---------- v2.1: ТАБІР БУДЬ-ДЕ (кнопка ⛺ ТАБІР / клавіша B) ---------- */
+IB.makeCamp=()=>{
+  if(IB.G.mode!=='game')return;
+  const L=IB.E.team[0];
+  /* вся група має бути поруч */
+  const far=IB.E.team.filter(m=>IB.dist(m.x,m.y,L.x,L.y)>9);
+  if(far.length){IB.toast('Хтось відбився ('+far.map(m=>m.name).join(', ')+') — натисни ШУКАТИ (R)','red');IB.SFX.alert();return;}
+  const x=L.x,y=L.y;
+  const terr=IB.W.at(x,y);
+  if(terr===0){IB.toast('У воді табір не поставиш — вийди на берег','red');return;}
+  if(terr===9||terr===10){IB.toast('Скелі й урвища — не місце для намету','red');return;}
+  /* не в селі: там корчма і хати */
+  const vil=(IB.W.VILLAGES||[]).find(v=>x>=v.x-1&&x<v.x+v.w+1&&y>=v.y-1&&y<v.y+v.h+1);
+  if(vil){IB.toast('У селі ночуй у корчмі або хаті — табір став на лугах чи в лісі','red');return;}
+  /* не дублюємо кемпінги і свої табори */
+  for(const c of IB.W.CAMPS)if(IB.dist(x,y,c.x,c.y)<c.r+4){IB.toast('Тут уже кемпінг «'+c.name+'» — натисни E біля вогнища','red');return;}
+  if((IB.G.wildCamps||[]).some(c=>IB.dist(x,y,c.x,c.y)<10)){IB.toast('Походний табір уже поруч — шукай жовтий намет','red');return;}
+  if(!IB.G.wildCamps)IB.G.wildCamps=[];
+  /* розчищення майданчика: прибрати дерева/кущі/пеньки в радіусі 2 (гриби й «5 г» лишається) */
+  for(let i=IB.W.props.length-1;i>=0;i--){
+    const p=IB.W.props[i];
+    if(p.type==='mush'||p.type==='triph'||p.type==='flower'||p.type==='herb')continue;
+    if(IB.M.abs(p.x-x)<=3&&IB.M.abs(p.y-y)<=3){IB.W.props.splice(i,1);IB.W.grid.delete(p.y*IB.W.W+p.x);}
+  }
+  const n=IB.G.wildCamps.length+1;
+  const zone=IB.W.zoneAt?IB.W.zoneAt(x,y):'КАРПАТИ';
+  const name='ПОХІДНИЙ ТАБІР №'+n+' — '+zone;
+  const id='w'+n;
+  IB.G.wildCamps.push({id:id,name:name,x:x,y:y,r:4.5,wild:true});
+  IB.G.camps[id]={fire:false,fuel:0,tent:true,well:false,table:false,dry:false,farm:{built:false,stage:0,planted:false,ready:false,grow:0}};
+  IB.SFX.build();
+  IB.banner('⛺ ТАБІР ПОСТАВЛЕНО');
+  IB.journalAdd('⛺','Табір будь-де: група розклала «'+name+'». Вогнище — E біля табору.');
+  IB.toast('Намет стоїть! Вогнище: E біля табору → «Збудувати: Вогнище»');
+  IB.saveGame();
+};
+
 /* ---------- ГУЛЯНКА (8 ігрових годин) ---------- */
 IB.PARTY_SCENES=[
   {i:'🍻',t:'ТОСТ ЛЕГЕНДИ',x:'Лєгенда підняв кружку: «За тих, хто в місті! За нову дорогу!» Група гуркнула кружками так, що сполохали зграї в смереках.'},
@@ -223,7 +262,7 @@ IB.PARTY_SCENES=[
 IB.canParty=()=>{
   const L=IB.E.team[0];
   const c=IB.G.nearCamp(L.x,L.y,7);
-  if(!c)return {ok:false,why:'Треба бути в таборі (кемпінг) з вогнищем'};
+  if(!c)return {ok:false,why:'Треба бути в таборі (кемпінг або свій похідний табір) з вогнищем'};
   const cc=IB.G.camps[c.id];
   if(!cc.fire||cc.fuel<=0)return {ok:false,why:'Вогнище не палає — підкинь дров у вогонь (E у таборі)'};
   /* вся група поруч */
@@ -716,7 +755,7 @@ IB.saveGame=()=>{
   try{
     const team=IB.E.team.map(h=>({id:h.id,x:h.x,y:h.y,hp:h.hp,food:h.food,water:h.water,mood:h.mood,alc:h.alc}));
     const data={v:1,day:IB.G.day,t:IB.G.t,money:IB.G.money,inv:IB.G.inv,quests:IB.G.quests,arts:IB.G.arts,
-      camps:IB.G.camps,journal:IB.G.journal.slice(0,40),flags:IB.G.flags,stats:IB.G.stats,
+      camps:IB.G.camps,wildCamps:IB.G.wildCamps||[],journal:IB.G.journal.slice(0,40),flags:IB.G.flags,stats:IB.G.stats,
       wx:IB.G.wx,hangover:IB.G.hangover,vision:IB.G.vision,axetier:IB.G.axetier,album:IB.G.album,team,
       stamps:IB.G.stamps||{},torch:IB.G.torch!==false,
       spawn:{x:IB.E.team[0].x,y:IB.E.team[0].y},touristDone:IB.G.touristDone};
@@ -729,7 +768,7 @@ IB.loadGame=()=>{
     const raw=localStorage.getItem('vlegend_karpaty');
     if(!raw)return false;
     const d=JSON.parse(raw);
-    Object.assign(IB.G,{day:d.day,t:d.t,money:d.money,inv:d.inv,quests:d.quests,arts:d.arts,camps:d.camps,
+    Object.assign(IB.G,{day:d.day,t:d.t,money:d.money,inv:d.inv,quests:d.quests,arts:d.arts,camps:d.camps,wildCamps:d.wildCamps||[],
       journal:d.journal||[],flags:d.flags,stats:d.stats,wx:d.wx,album:d.album||[],hangover:d.hangover||0,vision:d.vision||0,
       axetier:d.axetier||1,touristDone:d.touristDone||false,stamps:d.stamps||{},torch:d.torch!==false});
     IB.spawnTeam(d.spawn.x,d.spawn.y);
